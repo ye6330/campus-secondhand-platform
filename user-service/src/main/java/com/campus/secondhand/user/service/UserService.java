@@ -1,0 +1,12 @@
+package com.campus.secondhand.user.service;
+
+import com.campus.secondhand.common.core.result.ApiResponse;
+import com.campus.secondhand.user.dto.LoginRequest;
+import com.campus.secondhand.user.dto.RegisterRequest;
+import java.util.Map;
+
+public interface UserService {
+    ApiResponse<Map<String, Object>> register(RegisterRequest request);
+    ApiResponse<Map<String, Object>> login(LoginRequest request);
+    ApiResponse<Map<String, Object>> currentUser();
+}
