@@ -21,11 +21,6 @@
             <artifactId>common-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.campus.secondhand</groupId>
-            <artifactId>common-security</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
