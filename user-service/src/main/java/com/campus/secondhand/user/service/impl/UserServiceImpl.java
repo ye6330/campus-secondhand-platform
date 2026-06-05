@@ -90,6 +90,7 @@ public class UserServiceImpl implements UserService {
         result.put("userId", user.getId());
         result.put("username", user.getUsername());
         result.put("nickname", user.getNickname());
+        result.put("role", user.getRole());
         return ApiResponse.success(result);
     }
 

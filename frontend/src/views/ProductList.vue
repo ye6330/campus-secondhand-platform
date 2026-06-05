@@ -1,0 +1,180 @@
+<script setup>
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import request from '../utils/request'
+
+const router = useRouter()
+const loading = ref(false)
+const products = ref([])
+
+const loadProducts = async () => {
+  loading.value = true
+  try {
+    const res = await request.get('/api/products')
+    if (res.code === 200) {
+      products.value = res.data
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '加载商品列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadProducts()
+})
+
+const goBackHome = () => {
+  router.push('/home')
+}
+
+const goToPublish = () => {
+  router.push('/products/publish')
+}
+
+const goToDetail = (id) => {
+  router.push(`/products/${id}`)
+}
+</script>
+
+<template>
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h2>商品广场</h2>
+        <p>浏览所有已上架的商品。</p>
+      </div>
+      <div class="page-actions">
+        <el-button @click="goBackHome">返回首页</el-button>
+        <el-button type="primary" @click="goToPublish">发布商品</el-button>
+      </div>
+    </div>
+
+    <el-empty v-if="!loading && products.length === 0" description="暂无商品，去发布第一个商品吧" />
+
+    <div v-else class="product-grid" v-loading="loading">
+      <div v-for="product in products" :key="product.id" class="product-card" @click="goToDetail(product.id)">
+        <img :src="product.coverImage" alt="商品封面" class="product-cover" />
+        <div class="price-row">
+          <span class="price">￥{{ product.price }}</span>
+          <span class="time">{{ product.createdAt }}</span>
+        </div>
+        <h3>{{ product.title }}</h3>
+        <p>{{ product.description }}</p>
+        <div class="footer-row">
+          <span>卖家：{{ product.sellerName }}</span>
+          <span>ID：{{ product.id }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.page {
+  min-height: 100%;
+  background: #f5f7fa;
+  padding: 32px 20px;
+}
+
+.page-header {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-header h2 {
+  font-size: 28px;
+  color: #303133;
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  color: #909399;
+}
+
+.page-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.product-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.product-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.08);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+}
+
+.product-cover {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  margin-bottom: 16px;
+  background: #eef2ff;
+}
+
+.price-row,
+.footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.price {
+  color: #f56c6c;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.time,
+.footer-row {
+  color: #909399;
+  font-size: 13px;
+}
+
+.product-card h3 {
+  font-size: 20px;
+  color: #303133;
+  margin: 16px 0 10px;
+}
+
+.product-card p {
+  color: #606266;
+  line-height: 1.7;
+  min-height: 72px;
+}
+
+@media (max-width: 900px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>

@@ -1,4 +1,5 @@
 <script setup>
+import request from '../utils/request'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '../store/user'
@@ -14,6 +15,17 @@ const stats = ref([
   { label: '我的收藏', value: '—', icon: 'Star' },
   { label: '消息通知', value: '—', icon: 'Bell' }
 ])
+
+const loadProductsCount = async () => {
+  try {
+    const res = await request.get('/api/products')
+    if (res.code === 200) {
+      stats.value[0].value = res.data.length
+    }
+  } catch (e) {
+    stats.value[0].value = '—'
+  }
+}
 
 // 进入首页时从后端获取当前用户信息
 const loadCurrentUser = async () => {
@@ -35,7 +47,24 @@ const loadCurrentUser = async () => {
 
 onMounted(() => {
   loadCurrentUser()
+  loadProductsCount()
 })
+
+const goToPublish = () => {
+  router.push('/products/publish')
+}
+
+const goToProducts = () => {
+  router.push('/products')
+}
+
+const goToMyProducts = () => {
+  router.push('/my/products')
+}
+
+const goToAdminReview = () => {
+  router.push('/admin/review')
+}
 
 // 退出登录
 const handleLogout = () => {
@@ -88,17 +117,23 @@ const handleLogout = () => {
       </div>
 
       <div class="quick-actions">
-        <el-button type="primary" size="large" class="action-btn">
+        <el-button type="primary" size="large" class="action-btn" @click="goToPublish">
           <el-icon><Plus /></el-icon>
           发布商品
         </el-button>
-        <el-button size="large" class="action-btn">
-          <el-icon><ShoppingCart /></el-icon>
-          我的订单
+        <el-button size="large" class="action-btn" @click="goToMyProducts">
+          <el-icon><Goods /></el-icon>
+          我的商品
         </el-button>
-        <el-button size="large" class="action-btn">
+        <el-button size="large" class="action-btn" @click="goToProducts">
           <el-icon><Collection /></el-icon>
           浏览商品
+        </el-button>
+      </div>
+      <div class="quick-actions" v-if="userStore.role === 'ADMIN'" style="margin-top: 12px">
+        <el-button size="large" class="action-btn admin-btn" @click="goToAdminReview">
+          <el-icon><Checked /></el-icon>
+          商品审核
         </el-button>
       </div>
     </main>
@@ -250,5 +285,15 @@ const handleLogout = () => {
   .home-header {
     padding: 0 16px;
   }
+}
+
+.admin-btn {
+  background: #fff3e0;
+  border-color: #ffb300;
+  color: #e65100;
+}
+
+.admin-btn:hover {
+  background: #ffe0b2;
 }
 </style>

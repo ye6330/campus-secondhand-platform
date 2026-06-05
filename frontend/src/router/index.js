@@ -22,6 +22,42 @@ const routes = [
     name: 'Home',
     meta: { requiresAuth: true },
     component: () => import('../views/Home.vue')
+  },
+  {
+    path: '/products',
+    name: 'ProductList',
+    meta: { requiresAuth: true },
+    component: () => import('../views/ProductList.vue')
+  },
+  {
+    path: '/products/publish',
+    name: 'ProductPublish',
+    meta: { requiresAuth: true },
+    component: () => import('../views/ProductPublish.vue')
+  },
+  {
+    path: '/products/:id',
+    name: 'ProductDetail',
+    meta: { requiresAuth: true },
+    component: () => import('../views/ProductDetail.vue')
+  },
+  {
+    path: '/products/:id/edit',
+    name: 'ProductEdit',
+    meta: { requiresAuth: true },
+    component: () => import('../views/ProductEdit.vue')
+  },
+  {
+    path: '/my/products',
+    name: 'MyProducts',
+    meta: { requiresAuth: true },
+    component: () => import('../views/MyProducts.vue')
+  },
+  {
+    path: '/admin/review',
+    name: 'AdminReview',
+    meta: { requiresAuth: true },
+    component: () => import('../views/AdminReview.vue')
   }
 ]
 

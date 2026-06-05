@@ -4,8 +4,8 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-//@MapperScan("com.campus.secondhand.product.mapper")
-@SpringBootApplication
+@MapperScan("com.campus.secondhand.product.mapper")
+@SpringBootApplication(scanBasePackages = {"com.campus.secondhand.product", "com.campus.secondhand.common"})
 public class ProductServiceApplication {
 
     public static void main(String[] args) {
