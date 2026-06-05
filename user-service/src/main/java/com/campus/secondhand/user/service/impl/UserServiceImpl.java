@@ -91,7 +91,24 @@ public class UserServiceImpl implements UserService {
         result.put("username", user.getUsername());
         result.put("nickname", user.getNickname());
         result.put("role", user.getRole());
+        result.put("avatar", user.getAvatar());
         return ApiResponse.success(result);
+    }
+
+    @Override
+    public ApiResponse<String> updateAvatar(String avatarUrl) {
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            return ApiResponse.failed(401, "未登录");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return ApiResponse.failed(404, "用户不存在");
+        }
+        user.setAvatar(avatarUrl);
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        return ApiResponse.success(avatarUrl);
     }
 
     // 获取当前登录用户信息

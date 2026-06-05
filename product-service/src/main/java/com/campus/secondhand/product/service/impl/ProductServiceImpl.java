@@ -25,13 +25,38 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductVO> list() {
-        List<Product> products = productMapper.selectList(
-            new LambdaQueryWrapper<Product>()
-                .eq(Product::getStatus, "已上架")
-                .orderByDesc(Product::getId)
-        );
-        return toVOList(products);
+    public List<ProductVO> list(String keyword) {
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
+            .eq(Product::getStatus, "已上架");
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.and(w -> w
+                .like(Product::getTitle, keyword)
+                .or()
+                .like(Product::getDescription, keyword)
+            );
+        }
+        wrapper.orderByDesc(Product::getId);
+        return toVOList(productMapper.selectList(wrapper));
+    }
+
+    @Override
+    public List<String> suggest(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
+            .select(Product::getTitle)
+            .eq(Product::getStatus, "已上架")
+            .like(Product::getTitle, keyword)
+            .last("LIMIT 8");
+        List<Product> products = productMapper.selectList(wrapper);
+        List<String> titles = new ArrayList<>();
+        for (Product p : products) {
+            if (!titles.contains(p.getTitle())) {
+                titles.add(p.getTitle());
+            }
+        }
+        return titles;
     }
 
     @Override

@@ -9,4 +9,5 @@ public interface UserService {
     ApiResponse<Map<String, Object>> register(RegisterRequest request);
     ApiResponse<Map<String, Object>> login(LoginRequest request);
     ApiResponse<Map<String, Object>> currentUser();
+    ApiResponse<String> updateAvatar(String avatarUrl);
 }

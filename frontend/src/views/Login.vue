@@ -23,10 +23,13 @@ const handleLogin = async () => {
   }
   loading.value = true
   try {
-    // 调用后端登录接口，成功后跳转到首页
     await userStore.login(form.value)
     ElMessage.success('登录成功')
-    router.push('/home')
+    if (userStore.role === 'ADMIN') {
+      router.push('/admin/home')
+    } else {
+      router.push('/home')
+    }
   } catch (e) {
     // 显示后端返回的真实错误信息（如"用户名或密码错误"）
     const message = e?.response?.data?.message || e?.message || '登录失败'

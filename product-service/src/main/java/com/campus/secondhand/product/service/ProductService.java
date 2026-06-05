@@ -7,7 +7,9 @@ import java.util.List;
 
 public interface ProductService {
 
-    List<ProductVO> list();
+    List<ProductVO> list(String keyword);
+
+    List<String> suggest(String keyword);
 
     List<ProductVO> listMy(Long userId);
 

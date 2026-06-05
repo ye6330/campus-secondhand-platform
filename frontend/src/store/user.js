@@ -33,10 +33,12 @@ export const useUserStore = defineStore('user', {
         this.username = res.data.username
         this.nickname = res.data.nickname
         this.role = res.data.role || ''
+        this.avatar = res.data.avatar || ''
         localStorage.setItem('token', res.data.token)
         localStorage.setItem('userId', res.data.userId)
         localStorage.setItem('username', res.data.username)
         localStorage.setItem('nickname', res.data.nickname)
+        localStorage.setItem('avatar', res.data.avatar || '')
         return res
       }
       throw new Error(res.message)

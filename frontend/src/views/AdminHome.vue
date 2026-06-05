@@ -7,77 +7,7 @@ import { onMounted, ref } from 'vue'
 
 const router = useRouter()
 const userStore = useUserStore()
-
-// 首页统计卡片（后续接真实数据）
-const stats = ref([
-  { label: '在售商品', value: '—', icon: 'Goods' },
-  { label: '已完成订单', value: '—', icon: 'List' },
-  { label: '我的收藏', value: '—', icon: 'Star' },
-  { label: '消息通知', value: '—', icon: 'Bell' }
-])
-
-const loadProductsCount = async () => {
-  try {
-    const res = await request.get('/api/products')
-    if (res.code === 200) {
-      stats.value[0].value = res.data.length
-    }
-  } catch (e) {
-    stats.value[0].value = '—'
-  }
-}
-
-// 进入首页时从后端获取当前用户信息
-const loadCurrentUser = async () => {
-  if (!userStore.token) {
-    router.push('/login')
-    return
-  }
-
-  try {
-    await userStore.fetchCurrentUser()
-    if (userStore.role === 'ADMIN') {
-      router.push('/admin/home')
-      return
-    }
-  } catch (e) {
-    // token 失效，清空登录态，跳回登录页
-    userStore.logout()
-    ElMessage.error(e?.response?.data?.message || e?.message || '登录已失效，请重新登录')
-    router.push('/login')
-  }
-}
-
-onMounted(() => {
-  loadCurrentUser()
-  loadProductsCount()
-})
-
-const goToPublish = () => {
-  router.push('/products/publish')
-}
-
-const goToProducts = () => {
-  router.push('/products')
-}
-
-const goToMyProducts = () => {
-  router.push('/my/products')
-}
-
-// 退出登录
-const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    userStore.logout()
-    ElMessage.success('已退出登录')
-    router.push('/login')
-  }).catch(() => {})
-}
-
+const loading = ref(false)
 const avatarUploading = ref(false)
 const avatarPreviewVisible = ref(false)
 const avatarInput = ref(null)
@@ -117,14 +47,71 @@ const handleAvatarFileChange = (e) => {
     e.target.value = ''
   })
 }
+const pendingCount = ref('—')
+const totalProducts = ref('—')
+
+const loadStats = async () => {
+  try {
+    const [pendingRes, productRes] = await Promise.all([
+      request.get('/api/products/pending'),
+      request.get('/api/products')
+    ])
+    if (pendingRes.code === 200) pendingCount.value = pendingRes.data.length
+    if (productRes.code === 200) totalProducts.value = productRes.data.length
+  } catch (e) {
+    // silent
+  }
+}
+
+const loadCurrentUser = async () => {
+  if (!userStore.token) {
+    router.push('/login')
+    return
+  }
+  try {
+    await userStore.fetchCurrentUser()
+    if (userStore.role !== 'ADMIN') {
+      router.push('/home')
+    }
+  } catch (e) {
+    userStore.logout()
+    ElMessage.error('登录已失效，请重新登录')
+    router.push('/login')
+  }
+}
+
+onMounted(async () => {
+  loading.value = true
+  await loadCurrentUser()
+  if (userStore.role === 'ADMIN') {
+    await loadStats()
+  }
+  loading.value = false
+})
+
+const goToReview = () => router.push('/admin/review')
+const goToProducts = () => router.push('/products')
+
+const handleLogout = () => {
+  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    userStore.logout()
+    ElMessage.success('已退出登录')
+    router.push('/login')
+  }).catch(() => {})
+}
+
 </script>
 
 <template>
-  <div class="home-page">
-    <header class="home-header">
+  <div class="admin-page" v-loading="loading">
+    <header class="admin-header">
       <div class="header-left">
         <el-icon :size="28" class="header-logo"><School /></el-icon>
-        <span class="header-title">校园二手交易平台</span>
+        <span class="header-title">管理后台</span>
       </div>
       <div class="header-right">
         <el-dropdown trigger="click" @command="handleAvatarCommand">
@@ -162,47 +149,60 @@ const handleAvatarFileChange = (e) => {
         </el-dialog>
         <span class="welcome-text">
           {{ userStore.nickname || userStore.username }}
-          <el-tag size="small" type="info" style="margin-left:6px">用户</el-tag>
+          <el-tag size="small" type="danger" style="margin-left:6px">管理员</el-tag>
         </span>
-        <el-button text @click="handleLogout">
+        <el-button text style="color:rgba(255,255,255,0.7)" @click="handleLogout">
           <el-icon><SwitchButton /></el-icon>
           退出
         </el-button>
       </div>
     </header>
 
-    <main class="home-main">
+    <main class="admin-main">
       <div class="welcome-card">
-        <h2>欢迎回来 👋</h2>
-        <p>今天有什么想买的，或者想卖的吗？</p>
+        <h2>管理后台</h2>
+        <p>审核商品、管理平台内容</p>
       </div>
 
       <div class="stats-grid">
-        <div
-          v-for="stat in stats"
-          :key="stat.label"
-          class="stat-card"
-        >
-          <el-icon :size="28" class="stat-icon"><component :is="stat.icon" /></el-icon>
+        <div class="stat-card">
+          <el-icon :size="28" class="stat-icon warn"><WarningFilled /></el-icon>
           <div class="stat-info">
-            <span class="stat-value">{{ stat.value }}</span>
-            <span class="stat-label">{{ stat.label }}</span>
+            <span class="stat-value">{{ pendingCount }}</span>
+            <span class="stat-label">待审核商品</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <el-icon :size="28" class="stat-icon primary"><Goods /></el-icon>
+          <div class="stat-info">
+            <span class="stat-value">{{ totalProducts }}</span>
+            <span class="stat-label">已上架商品</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <el-icon :size="28" class="stat-icon success"><User /></el-icon>
+          <div class="stat-info">
+            <span class="stat-value">—</span>
+            <span class="stat-label">注册用户</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <el-icon :size="28" class="stat-icon info"><List /></el-icon>
+          <div class="stat-info">
+            <span class="stat-value">—</span>
+            <span class="stat-label">总订单</span>
           </div>
         </div>
       </div>
 
       <div class="quick-actions">
-        <el-button type="primary" size="large" class="action-btn" @click="goToPublish">
-          <el-icon><Plus /></el-icon>
-          发布商品
-        </el-button>
-        <el-button size="large" class="action-btn" @click="goToMyProducts">
-          <el-icon><Goods /></el-icon>
-          我的商品
+        <el-button type="warning" size="large" class="action-btn" @click="goToReview">
+          <el-icon><Checked /></el-icon>
+          商品审核
         </el-button>
         <el-button size="large" class="action-btn" @click="goToProducts">
           <el-icon><Collection /></el-icon>
-          浏览商品
+          浏览商品广场
         </el-button>
       </div>
     </main>
@@ -210,18 +210,18 @@ const handleAvatarFileChange = (e) => {
 </template>
 
 <style scoped>
-.home-page {
+.admin-page {
   min-height: 100%;
   background: #f0f2f5;
 }
 
-.home-header {
+.admin-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
   height: 64px;
-  background: #fff;
+  background: #1a1a2e;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 0;
@@ -235,24 +235,13 @@ const handleAvatarFileChange = (e) => {
 }
 
 .header-logo {
-  color: #667eea;
+  color: #e94560;
 }
 
 .header-title {
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.welcome-text {
-  font-size: 14px;
-  color: #606266;
+  color: #fff;
 }
 
 .avatar-wrapper {
@@ -278,30 +267,29 @@ const handleAvatarFileChange = (e) => {
   opacity: 1;
 }
 
-.home-main {
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.welcome-text {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+}
+
+.admin-main {
   max-width: 1000px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
 .welcome-card {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
   border-radius: 16px;
   padding: 36px 40px;
   color: #fff;
   margin-bottom: 32px;
-  animation: slideDown 0.5s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .welcome-card h2 {
@@ -311,7 +299,7 @@ const handleAvatarFileChange = (e) => {
 
 .welcome-card p {
   font-size: 15px;
-  opacity: 0.85;
+  opacity: 0.7;
 }
 
 .stats-grid {
@@ -329,17 +317,17 @@ const handleAvatarFileChange = (e) => {
   align-items: center;
   gap: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.stat-icon {
-  color: #667eea;
-}
+.stat-icon.warn { color: #e6a23c; }
+.stat-icon.primary { color: #409eff; }
+.stat-icon.success { color: #67c23a; }
+.stat-icon.info { color: #909399; }
 
 .stat-info {
   display: flex;
@@ -374,10 +362,8 @@ const handleAvatarFileChange = (e) => {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .home-header {
+  .admin-header {
     padding: 0 16px;
   }
 }
-
-
 </style>

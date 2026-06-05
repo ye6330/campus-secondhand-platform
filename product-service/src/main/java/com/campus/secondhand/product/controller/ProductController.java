@@ -35,10 +35,16 @@ public class ProductController {
         this.fileService = fileService;
     }
 
-    @ApiOperation("查询商品列表（只展示已上架）")
+    @ApiOperation("查询商品列表（只展示已上架，支持关键词搜索）")
     @GetMapping
-    public ApiResponse<List<ProductVO>> list() {
-        return ApiResponse.success(productService.list());
+    public ApiResponse<List<ProductVO>> list(@RequestParam(required = false) String keyword) {
+        return ApiResponse.success(productService.list(keyword));
+    }
+
+    @ApiOperation("搜索建议（输入时弹出提示）")
+    @GetMapping("/suggest")
+    public ApiResponse<List<String>> suggest(@RequestParam String keyword) {
+        return ApiResponse.success(productService.suggest(keyword));
     }
 
     @ApiOperation("查询我的商品（所有状态）")

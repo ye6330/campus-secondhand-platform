@@ -7,11 +7,13 @@ import request from '../utils/request'
 const router = useRouter()
 const loading = ref(false)
 const products = ref([])
+const keyword = ref('')
 
-const loadProducts = async () => {
+const loadProducts = async (kw) => {
   loading.value = true
   try {
-    const res = await request.get('/api/products')
+    const params = kw ? { keyword: kw } : {}
+    const res = await request.get('/api/products', { params })
     if (res.code === 200) {
       products.value = res.data
       return
@@ -27,6 +29,37 @@ const loadProducts = async () => {
 onMounted(() => {
   loadProducts()
 })
+
+const querySearch = async (queryString, cb) => {
+  if (!queryString.trim()) {
+    cb([])
+    return
+  }
+  try {
+    const res = await request.get('/api/products/suggest', { params: { keyword: queryString } })
+    if (res.code === 200) {
+      cb(res.data.map(v => ({ value: v })))
+      return
+    }
+  } catch (e) {
+    // silent
+  }
+  cb([])
+}
+
+const handleSearch = () => {
+  loadProducts(keyword.value.trim())
+}
+
+const handleSelect = (item) => {
+  keyword.value = item.value
+  loadProducts(item.value)
+}
+
+const clearSearch = () => {
+  keyword.value = ''
+  loadProducts()
+}
 
 const goBackHome = () => {
   router.push('/home')
@@ -54,7 +87,22 @@ const goToDetail = (id) => {
       </div>
     </div>
 
-    <el-empty v-if="!loading && products.length === 0" description="暂无商品，去发布第一个商品吧" />
+    <div class="search-row">
+      <el-autocomplete
+        v-model="keyword"
+        :fetch-suggestions="querySearch"
+        placeholder="搜索商品..."
+        :trigger-on-focus="false"
+        clearable
+        @keyup.enter="handleSearch"
+        @select="handleSelect"
+        class="search-input"
+      />
+      <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button v-if="keyword" @click="clearSearch">清除</el-button>
+    </div>
+
+    <el-empty v-if="!loading && products.length === 0" description="暂无商品" />
 
     <div v-else class="product-grid" v-loading="loading">
       <div v-for="product in products" :key="product.id" class="product-card" @click="goToDetail(product.id)">
@@ -103,6 +151,17 @@ const goToDetail = (id) => {
 .page-actions {
   display: flex;
   gap: 12px;
+}
+
+.search-row {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.search-input {
+  flex: 1;
 }
 
 .product-grid {
