@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { StarFilled, Star } from '@element-plus/icons-vue'
 import request from '../utils/request'
 
 const router = useRouter()
@@ -72,6 +73,30 @@ const goToPublish = () => {
 const goToDetail = (id) => {
   router.push(`/products/${id}`)
 }
+
+const toggleFavorite = async (e, product) => {
+  e.stopPropagation()
+  try {
+    if (product.favorited) {
+      const res = await request.delete(`/api/favorites/${product.id}`)
+      if (res.code === 200) {
+        product.favorited = false
+        product.favoriteCount--
+        return
+      }
+    } else {
+      const res = await request.post(`/api/favorites/${product.id}`)
+      if (res.code === 200) {
+        product.favorited = true
+        product.favoriteCount++
+        return
+      }
+    }
+    throw new Error('操作失败')
+  } catch (e2) {
+    ElMessage.error(e2?.response?.data?.message || e2?.message || '操作失败')
+  }
+}
 </script>
 
 <template>
@@ -115,7 +140,18 @@ const goToDetail = (id) => {
         <p>{{ product.description }}</p>
         <div class="footer-row">
           <span>卖家：{{ product.sellerName }}</span>
-          <span>ID：{{ product.id }}</span>
+          <span class="fav-action" @click.stop>
+            <el-icon
+              :color="product.favorited ? '#e6a23c' : '#c0c4cc'"
+              :size="18"
+              style="cursor:pointer"
+              @click="toggleFavorite($event, product)"
+            >
+              <StarFilled v-if="product.favorited" />
+              <Star v-else />
+            </el-icon>
+            {{ product.favoriteCount || 0 }}
+          </span>
         </div>
       </div>
     </div>
@@ -213,6 +249,14 @@ const goToDetail = (id) => {
 .footer-row {
   color: #909399;
   font-size: 13px;
+}
+
+.fav-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+  user-select: none;
 }
 
 .product-card h3 {

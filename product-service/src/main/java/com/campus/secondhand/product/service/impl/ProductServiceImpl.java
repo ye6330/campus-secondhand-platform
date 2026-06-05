@@ -5,6 +5,7 @@ import com.campus.secondhand.common.security.context.UserContext;
 import com.campus.secondhand.product.dto.CreateProductRequest;
 import com.campus.secondhand.product.dto.UpdateProductRequest;
 import com.campus.secondhand.product.entity.Product;
+import com.campus.secondhand.product.mapper.FavoriteMapper;
 import com.campus.secondhand.product.mapper.ProductMapper;
 import com.campus.secondhand.product.service.ProductService;
 import com.campus.secondhand.product.vo.ProductVO;
@@ -19,9 +20,11 @@ public class ProductServiceImpl implements ProductService {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final ProductMapper productMapper;
+    private final FavoriteMapper favoriteMapper;
 
-    public ProductServiceImpl(ProductMapper productMapper) {
+    public ProductServiceImpl(ProductMapper productMapper, FavoriteMapper favoriteMapper) {
         this.productMapper = productMapper;
+        this.favoriteMapper = favoriteMapper;
     }
 
     @Override
@@ -181,6 +184,11 @@ public class ProductServiceImpl implements ProductService {
         product.setSellerId(entity.getSellerId());
         product.setSellerName(entity.getSellerName());
         product.setStatus(entity.getStatus());
+        product.setFavoriteCount(favoriteMapper.countByProductId(entity.getId()));
+        Long currentUserId = UserContext.getUserId();
+        if (currentUserId != null) {
+            product.setFavorited(favoriteMapper.exists(currentUserId, entity.getId()) > 0);
+        }
         if (entity.getCreatedAt() != null) {
             product.setCreatedAt(entity.getCreatedAt().format(TIME_FORMATTER));
         }

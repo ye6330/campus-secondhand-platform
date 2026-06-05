@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { StarFilled, Star } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { useUserStore } from '../store/user'
 
@@ -40,6 +41,30 @@ const goBack = () => {
 
 const goToEdit = () => {
   router.push(`/products/${route.params.id}/edit`)
+}
+
+const toggleFavorite = async () => {
+  if (!product.value) return
+  try {
+    if (product.value.favorited) {
+      const res = await request.delete(`/api/favorites/${product.value.id}`)
+      if (res.code === 200) {
+        product.value.favorited = false
+        product.value.favoriteCount--
+        return
+      }
+    } else {
+      const res = await request.post(`/api/favorites/${product.value.id}`)
+      if (res.code === 200) {
+        product.value.favorited = true
+        product.value.favoriteCount++
+        return
+      }
+    }
+    throw new Error('操作失败')
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '操作失败')
+  }
 }
 
 const handleDelete = () => {
@@ -84,7 +109,16 @@ const handleDelete = () => {
             <el-tag v-else-if="product.status === '已上架'" type="success">已上架</el-tag>
             <el-tag v-else-if="product.status === '已拒绝'" type="danger">已拒绝</el-tag>
           </div>
-          <div class="detail-price">￥{{ product.price }}</div>
+          <div class="detail-price-row">
+            <div class="detail-price">￥{{ product.price }}</div>
+            <div class="detail-fav" @click="toggleFavorite">
+              <el-icon :color="product.favorited ? '#e6a23c' : '#c0c4cc'" :size="22" style="cursor:pointer">
+                <StarFilled v-if="product.favorited" />
+                <Star v-else />
+              </el-icon>
+              <span>{{ product.favoriteCount || 0 }}</span>
+            </div>
+          </div>
           <div class="detail-meta">
             <span>卖家：{{ product.sellerName }}</span>
             <span>发布时间：{{ product.createdAt }}</span>
@@ -160,11 +194,27 @@ const handleDelete = () => {
   margin: 0;
 }
 
+.detail-price-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
 .detail-price {
   font-size: 28px;
   font-weight: 700;
   color: #f56c6c;
-  margin-bottom: 16px;
+}
+
+.detail-fav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  color: #909399;
+  font-size: 14px;
 }
 
 .detail-meta {

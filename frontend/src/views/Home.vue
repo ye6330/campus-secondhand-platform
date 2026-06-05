@@ -2,6 +2,7 @@
 import request from '../utils/request'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { StarFilled } from '@element-plus/icons-vue'
 import { useUserStore } from '../store/user'
 import { onMounted, ref } from 'vue'
 
@@ -24,6 +25,17 @@ const loadProductsCount = async () => {
     }
   } catch (e) {
     stats.value[0].value = '—'
+  }
+}
+
+const loadFavoritesCount = async () => {
+  try {
+    const res = await request.get('/api/favorites/my')
+    if (res.code === 200) {
+      stats.value[2].value = res.data.length
+    }
+  } catch (e) {
+    // ignore
   }
 }
 
@@ -51,6 +63,7 @@ const loadCurrentUser = async () => {
 onMounted(() => {
   loadCurrentUser()
   loadProductsCount()
+  loadFavoritesCount()
 })
 
 const goToPublish = () => {
@@ -63,6 +76,10 @@ const goToProducts = () => {
 
 const goToMyProducts = () => {
   router.push('/my/products')
+}
+
+const goToMyFavorites = () => {
+  router.push('/my/favorites')
 }
 
 // 退出登录
@@ -203,6 +220,10 @@ const handleAvatarFileChange = (e) => {
         <el-button size="large" class="action-btn" @click="goToProducts">
           <el-icon><Collection /></el-icon>
           浏览商品
+        </el-button>
+        <el-button size="large" class="action-btn" @click="goToMyFavorites">
+          <el-icon><StarFilled /></el-icon>
+          我的收藏
         </el-button>
       </div>
     </main>

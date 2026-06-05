@@ -12,6 +12,8 @@ public class ProductVO {
     private Long sellerId;
     private String sellerName;
     private String status;
+    private int favoriteCount;
+    private boolean favorited;
     private String createdAt;
 
     public Long getId() {
@@ -84,5 +86,21 @@ public class ProductVO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int getFavoriteCount() {
+        return favoriteCount;
+    }
+
+    public void setFavoriteCount(int favoriteCount) {
+        this.favoriteCount = favoriteCount;
+    }
+
+    public boolean isFavorited() {
+        return favorited;
+    }
+
+    public void setFavorited(boolean favorited) {
+        this.favorited = favorited;
     }
 }
