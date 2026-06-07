@@ -38,6 +38,12 @@ public class UserController {
         return userService.register(request);
     }
 
+    @ApiOperation("获取图片验证码")
+    @GetMapping("/captcha")
+    public ApiResponse<Map<String, String>> captcha() {
+        return userService.captcha();
+    }
+
     @ApiOperation("用户登录")
     @PostMapping("/login")
     public ApiResponse<Map<String, Object>> login(@Validated @RequestBody LoginRequest request) {

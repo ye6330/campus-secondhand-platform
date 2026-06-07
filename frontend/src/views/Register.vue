@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../store/user'
+import request from '../utils/request'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -12,13 +13,34 @@ const form = ref({
   password: '',
   confirmPassword: '',
   nickname: '',
-  phone: ''
+  phone: '',
+  captchaCode: ''
 })
 
 const loading = ref(false)
+const captchaKey = ref('')
+const captchaImage = ref('')
+
+const loadCaptcha = async () => {
+  try {
+    const res = await request.get('/api/users/captcha')
+    if (res.code === 200) {
+      captchaKey.value = res.data.captchaKey
+      captchaImage.value = res.data.imageBase64
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    ElMessage.error('验证码加载失败')
+  }
+}
+
+onMounted(() => {
+  loadCaptcha()
+})
 
 const handleRegister = async () => {
-  if (!form.value.username || !form.value.password || !form.value.nickname) {
+  if (!form.value.username || !form.value.password || !form.value.nickname || !form.value.captchaCode) {
     ElMessage.warning('请填写必要信息')
     return
   }
@@ -36,7 +58,9 @@ const handleRegister = async () => {
       username: form.value.username,
       password: form.value.password,
       nickname: form.value.nickname,
-      phone: form.value.phone
+      phone: form.value.phone,
+      captchaKey: captchaKey.value,
+      captchaCode: form.value.captchaCode
     })
     if (res.code === 200) {
       ElMessage.success('注册成功，请登录')
@@ -44,6 +68,8 @@ const handleRegister = async () => {
     }
   } catch (e) {
     ElMessage.error(e.message || '注册失败')
+    loadCaptcha()
+    form.value.captchaCode = ''
   } finally {
     loading.value = false
   }
@@ -110,6 +136,23 @@ const handleRegister = async () => {
               :prefix-icon="Iphone"
               size="large"
             />
+          </el-form-item>
+          <el-form-item>
+            <div class="captcha-row">
+              <el-input
+                v-model="form.captchaCode"
+                placeholder="请输入验证码"
+                :prefix-icon="Key"
+                size="large"
+              />
+              <img
+                v-if="captchaImage"
+                :src="captchaImage"
+                class="captcha-image"
+                alt="验证码"
+                @click="loadCaptcha"
+              />
+            </div>
           </el-form-item>
           <el-form-item>
             <el-button
@@ -259,6 +302,26 @@ const handleRegister = async () => {
 
 .register-form :deep(.el-input__wrapper.is-focus) {
   box-shadow: 0 0 0 2px #667eea inset;
+}
+
+.captcha-row {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.captcha-row .el-input {
+  flex: 1;
+}
+
+.captcha-image {
+  width: 120px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #dcdfe6;
+  cursor: pointer;
+  background: #fff;
+  object-fit: cover;
 }
 
 .register-form :deep(.el-input__inner) {

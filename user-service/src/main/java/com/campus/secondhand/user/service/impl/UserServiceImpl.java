@@ -8,6 +8,7 @@ import com.campus.secondhand.user.dto.LoginRequest;
 import com.campus.secondhand.user.dto.RegisterRequest;
 import com.campus.secondhand.user.entity.User;
 import com.campus.secondhand.user.mapper.UserMapper;
+import com.campus.secondhand.user.service.CaptchaService;
 import com.campus.secondhand.user.service.UserService;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -23,18 +24,28 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     // 生成和解析 JWT token
     private final JwtTokenService jwtTokenService;
+    private final CaptchaService captchaService;
     // Spring Security 提供的密码加密器
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserMapper userMapper, JwtTokenService jwtTokenService) {
+    public UserServiceImpl(UserMapper userMapper, JwtTokenService jwtTokenService, CaptchaService captchaService) {
         this.userMapper = userMapper;
         this.jwtTokenService = jwtTokenService;
+        this.captchaService = captchaService;
         this.passwordEncoder = new BCryptPasswordEncoder();
+    }
+
+    @Override
+    public ApiResponse<Map<String, String>> captcha() {
+        return ApiResponse.success(captchaService.generate());
     }
 
     // 用户注册
     @Override
     public ApiResponse<Map<String, Object>> register(RegisterRequest request) {
+        if (!captchaService.verify(request.getCaptchaKey(), request.getCaptchaCode())) {
+            return ApiResponse.failed(400, "验证码错误或已过期");
+        }
         // 1. 查数据库，看用户名是否已经存在
         Long count = userMapper.selectCount(
             new LambdaQueryWrapper<User>().eq(User::getUsername, request.getUsername())

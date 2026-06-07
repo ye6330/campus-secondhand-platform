@@ -48,7 +48,7 @@ public class SecurityConfig {
                 "/v3/api-docs",
                 "/webjars/**"
             ).permitAll()
-            .antMatchers("/api/users/register", "/api/users/login").permitAll()
+            .antMatchers("/api/users/register", "/api/users/login", "/api/users/captcha").permitAll()
             // 其他所有接口都需要登录
             .anyRequest().authenticated()
             .and()

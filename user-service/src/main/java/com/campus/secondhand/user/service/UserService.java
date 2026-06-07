@@ -6,6 +6,7 @@ import com.campus.secondhand.user.dto.RegisterRequest;
 import java.util.Map;
 
 public interface UserService {
+    ApiResponse<Map<String, String>> captcha();
     ApiResponse<Map<String, Object>> register(RegisterRequest request);
     ApiResponse<Map<String, Object>> login(LoginRequest request);
     ApiResponse<Map<String, Object>> currentUser();

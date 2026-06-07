@@ -22,6 +22,14 @@ public class RegisterRequest {
     @ApiModelProperty("手机号")
     private String phone;
 
+    @NotBlank
+    @ApiModelProperty("验证码key")
+    private String captchaKey;
+
+    @NotBlank
+    @ApiModelProperty("验证码")
+    private String captchaCode;
+
     public String getUsername() {
         return username;
     }
@@ -52,5 +60,21 @@ public class RegisterRequest {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getCaptchaKey() {
+        return captchaKey;
+    }
+
+    public void setCaptchaKey(String captchaKey) {
+        this.captchaKey = captchaKey;
+    }
+
+    public String getCaptchaCode() {
+        return captchaCode;
+    }
+
+    public void setCaptchaCode(String captchaCode) {
+        this.captchaCode = captchaCode;
     }
 }
