@@ -140,18 +140,21 @@ const toggleFavorite = async (e, product) => {
         <p>{{ product.description }}</p>
         <div class="footer-row">
           <span>卖家：{{ product.sellerName }}</span>
-          <span class="fav-action" @click.stop>
-            <el-icon
-              :color="product.favorited ? '#e6a23c' : '#c0c4cc'"
-              :size="18"
-              style="cursor:pointer"
-              @click="toggleFavorite($event, product)"
-            >
-              <StarFilled v-if="product.favorited" />
-              <Star v-else />
-            </el-icon>
-            {{ product.favoriteCount || 0 }}
-          </span>
+          <div class="card-stats" @click.stop>
+            <span class="view-count">浏览 {{ product.viewCount || 0 }}</span>
+            <span class="fav-action">
+              <el-icon
+                :color="product.favorited ? '#e6a23c' : '#c0c4cc'"
+                :size="18"
+                style="cursor:pointer"
+                @click="toggleFavorite($event, product)"
+              >
+                <StarFilled v-if="product.favorited" />
+                <Star v-else />
+              </el-icon>
+              {{ product.favoriteCount || 0 }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -257,6 +260,16 @@ const toggleFavorite = async (e, product) => {
   gap: 4px;
   cursor: default;
   user-select: none;
+}
+
+.card-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-count {
+  color: #909399;
 }
 
 .product-card h3 {

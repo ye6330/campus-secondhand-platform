@@ -78,6 +78,11 @@ public class ProductServiceImpl implements ProductService {
         if (product == null) {
             throw new RuntimeException("商品不存在");
         }
+        if ("已上架".equals(product.getStatus())) {
+            int nextViewCount = product.getViewCount() == null ? 1 : product.getViewCount() + 1;
+            product.setViewCount(nextViewCount);
+            productMapper.updateById(product);
+        }
         return toVO(product);
     }
 
@@ -94,6 +99,7 @@ public class ProductServiceImpl implements ProductService {
         product.setSellerId(currentUserId);
         product.setSellerName(currentUsername);
         product.setStatus("待审核");
+        product.setViewCount(0);
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.insert(product);
@@ -185,6 +191,7 @@ public class ProductServiceImpl implements ProductService {
         product.setSellerName(entity.getSellerName());
         product.setStatus(entity.getStatus());
         product.setFavoriteCount(favoriteMapper.countByProductId(entity.getId()));
+        product.setViewCount(entity.getViewCount() == null ? 0 : entity.getViewCount());
         Long currentUserId = UserContext.getUserId();
         if (currentUserId != null) {
             product.setFavorited(favoriteMapper.exists(currentUserId, entity.getId()) > 0);

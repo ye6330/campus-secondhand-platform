@@ -18,6 +18,7 @@ public class Product {
     private Long sellerId;
     private String sellerName;
     private String status;
+    private Integer viewCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -83,6 +84,14 @@ public class Product {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Integer getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Integer viewCount) {
+        this.viewCount = viewCount;
     }
 
     public LocalDateTime getCreatedAt() {

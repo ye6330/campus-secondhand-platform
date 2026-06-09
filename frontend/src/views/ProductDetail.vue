@@ -189,6 +189,7 @@ const deleteComment = async (item) => {
           <div class="detail-meta">
             <span>卖家：{{ product.sellerName }}</span>
             <span>发布时间：{{ product.createdAt }}</span>
+            <span>浏览量：{{ product.viewCount || 0 }}</span>
           </div>
           <el-divider />
           <div class="detail-desc">

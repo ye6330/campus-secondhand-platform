@@ -13,6 +13,7 @@ public class ProductVO {
     private String sellerName;
     private String status;
     private int favoriteCount;
+    private int viewCount;
     private boolean favorited;
     private String createdAt;
 
@@ -94,6 +95,14 @@ public class ProductVO {
 
     public void setFavoriteCount(int favoriteCount) {
         this.favoriteCount = favoriteCount;
+    }
+
+    public int getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(int viewCount) {
+        this.viewCount = viewCount;
     }
 
     public boolean isFavorited() {

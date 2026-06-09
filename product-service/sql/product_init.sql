@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `product` (
   `seller_id` BIGINT NOT NULL COMMENT '卖家用户ID',
   `seller_name` VARCHAR(50) NOT NULL COMMENT '卖家用户名',
   `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1在售 0下架',
+  `view_count` INT NOT NULL DEFAULT 0 COMMENT '浏览量',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
@@ -14,6 +15,9 @@ CREATE TABLE IF NOT EXISTS `product` (
 
 ALTER TABLE `product`
 ADD COLUMN IF NOT EXISTS `cover_image` VARCHAR(255) NOT NULL DEFAULT '' COMMENT '商品封面图' AFTER `price`;
+
+ALTER TABLE `product`
+ADD COLUMN IF NOT EXISTS `view_count` INT NOT NULL DEFAULT 0 COMMENT '浏览量' AFTER `status`;
 
 INSERT INTO `product` (`title`, `description`, `price`, `cover_image`, `seller_id`, `seller_name`, `status`)
 SELECT '二手机械键盘', '青轴，宿舍自用，成色较新。', 129.00, 'https://via.placeholder.com/600x400.png?text=Keyboard', 1, '校园卖家A', 1
