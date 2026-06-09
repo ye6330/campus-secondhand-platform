@@ -12,6 +12,10 @@ const userStore = useUserStore()
 const loading = ref(false)
 const product = ref(null)
 const isSeller = ref(false)
+const comments = ref([])
+const commentLoading = ref(false)
+const commentSubmitting = ref(false)
+const commentContent = ref('')
 
 const loadDetail = async () => {
   loading.value = true
@@ -31,8 +35,25 @@ const loadDetail = async () => {
   }
 }
 
+const loadComments = async () => {
+  commentLoading.value = true
+  try {
+    const res = await request.get('/api/comments', { params: { productId: route.params.id } })
+    if (res.code === 200) {
+      comments.value = res.data
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '加载留言失败')
+  } finally {
+    commentLoading.value = false
+  }
+}
+
 onMounted(() => {
   loadDetail()
+  loadComments()
 })
 
 const goBack = () => {
@@ -86,6 +107,52 @@ const handleDelete = () => {
     }
   }).catch(() => {})
 }
+
+const submitComment = async () => {
+  if (!commentContent.value.trim()) {
+    ElMessage.warning('请输入留言内容')
+    return
+  }
+  commentSubmitting.value = true
+  try {
+    const res = await request.post('/api/comments', {
+      productId: Number(route.params.id),
+      content: commentContent.value.trim()
+    })
+    if (res.code === 200) {
+      comments.value.unshift(res.data)
+      commentContent.value = ''
+      ElMessage.success('留言成功')
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '留言失败')
+  } finally {
+    commentSubmitting.value = false
+  }
+}
+
+const deleteComment = async (item) => {
+  try {
+    await ElMessageBox.confirm('确定删除这条留言吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    const res = await request.delete(`/api/comments/${item.id}`)
+    if (res.code === 200) {
+      comments.value = comments.value.filter(comment => comment.id !== item.id)
+      ElMessage.success('删除成功')
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    if (e !== 'cancel' && e !== 'close') {
+      ElMessage.error(e?.response?.data?.message || e?.message || '删除失败')
+    }
+  }
+}
 </script>
 
 <template>
@@ -130,6 +197,43 @@ const handleDelete = () => {
           </div>
         </div>
       </div>
+
+      <div class="comment-section">
+        <div class="comment-header">
+          <h3>商品留言</h3>
+          <span>{{ comments.length }} 条</span>
+        </div>
+        <div class="comment-editor">
+          <el-input
+            v-model="commentContent"
+            type="textarea"
+            :rows="3"
+            maxlength="500"
+            show-word-limit
+            placeholder="可以留言问价格、成色、交易方式等"
+          />
+          <div class="comment-submit-row">
+            <el-button type="primary" :loading="commentSubmitting" @click="submitComment">发表评论</el-button>
+          </div>
+        </div>
+
+        <div class="comment-list" v-loading="commentLoading">
+          <el-empty v-if="!commentLoading && comments.length === 0" description="还没有人留言" />
+          <div v-for="item in comments" :key="item.id" class="comment-item">
+            <div class="comment-top-row">
+              <div class="comment-user">
+                <strong>{{ item.username }}</strong>
+                <el-tag v-if="item.mine" size="small" type="success">我</el-tag>
+              </div>
+              <div class="comment-right">
+                <span class="comment-time">{{ item.createdAt }}</span>
+                <el-button v-if="item.mine" text type="danger" @click="deleteComment(item)">删除</el-button>
+              </div>
+            </div>
+            <p class="comment-content">{{ item.content }}</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -165,6 +269,87 @@ const handleDelete = () => {
   border-radius: 16px;
   padding: 32px;
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.08);
+}
+
+.comment-section {
+  margin-top: 24px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.08);
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.comment-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #303133;
+}
+
+.comment-header span {
+  color: #909399;
+  font-size: 13px;
+}
+
+.comment-editor {
+  margin-bottom: 20px;
+}
+
+.comment-submit-row {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.comment-item {
+  border: 1px solid #ebeef5;
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: #fafcff;
+}
+
+.comment-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.comment-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-time {
+  color: #909399;
+  font-size: 12px;
+}
+
+.comment-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comment-content {
+  margin: 0;
+  color: #606266;
+  line-height: 1.8;
+  white-space: pre-wrap;
 }
 
 .detail-image {

@@ -39,7 +39,7 @@ public class SecurityConfig {
                 "/v3/api-docs",
                 "/webjars/**"
             ).permitAll()
-            .antMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**").permitAll()
+            .antMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/comments/**").permitAll()
             .anyRequest().authenticated()
             .and()
             .formLogin().disable()
