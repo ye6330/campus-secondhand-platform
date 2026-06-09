@@ -49,12 +49,12 @@ public class ProductController {
 
     @ApiOperation("查询我的商品（所有状态）")
     @GetMapping("/my")
-    public ApiResponse<List<ProductVO>> listMy() {
+    public ApiResponse<List<ProductVO>> listMy(@RequestParam(required = false) String status) {
         Long userId = UserContext.getUserId();
         if (userId == null) {
             return ApiResponse.failed(401, "未登录");
         }
-        return ApiResponse.success(productService.listMy(userId));
+        return ApiResponse.success(productService.listMy(userId, status));
     }
 
     @ApiOperation("商品详情")

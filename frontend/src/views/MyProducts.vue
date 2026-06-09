@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '../utils/request'
@@ -8,11 +8,18 @@ const router = useRouter()
 const loading = ref(false)
 const products = ref([])
 const activeTab = ref('all')
+const counts = ref({
+  all: 0,
+  '待审核': 0,
+  '已上架': 0,
+  '已拒绝': 0
+})
 
 const loadMyProducts = async () => {
   loading.value = true
   try {
-    const res = await request.get('/api/products/my')
+    const params = activeTab.value === 'all' ? {} : { status: activeTab.value }
+    const res = await request.get('/api/products/my', { params })
     if (res.code === 200) {
       products.value = res.data
       return
@@ -25,14 +32,33 @@ const loadMyProducts = async () => {
   }
 }
 
+const loadCounts = async () => {
+  try {
+    const res = await request.get('/api/products/my')
+    if (res.code === 200) {
+      const allProducts = res.data || []
+      counts.value = {
+        all: allProducts.length,
+        '待审核': allProducts.filter(item => item.status === '待审核').length,
+        '已上架': allProducts.filter(item => item.status === '已上架').length,
+        '已拒绝': allProducts.filter(item => item.status === '已拒绝').length
+      }
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '加载商品统计失败')
+  }
+}
+
 onMounted(() => {
   loadMyProducts()
+  loadCounts()
 })
 
-const filteredProducts = () => {
-  if (activeTab.value === 'all') return products.value
-  return products.value.filter(p => p.status === activeTab.value)
-}
+watch(activeTab, () => {
+  loadMyProducts()
+})
 
 const goToDetail = (id) => {
   router.push(`/products/${id}`)
@@ -49,6 +75,7 @@ const handleDelete = (id, title) => {
       if (res.code === 200) {
         ElMessage.success('删除成功')
         loadMyProducts()
+        loadCounts()
         return
       }
       throw new Error(res.message)
@@ -63,21 +90,21 @@ const handleDelete = (id, title) => {
   <div class="page" v-loading="loading">
     <div class="page-header">
       <el-button @click="router.push('/home')">&lt; 返回首页</el-button>
-      <h2>我的商品</h2>
+      <h2>我的发布</h2>
       <el-button type="primary" @click="router.push('/products/publish')">发布新商品</el-button>
     </div>
 
     <el-tabs v-model="activeTab" class="tabs">
-      <el-tab-pane label="全部" name="all" />
-      <el-tab-pane label="待审核" name="待审核" />
-      <el-tab-pane label="已上架" name="已上架" />
-      <el-tab-pane label="已拒绝" name="已拒绝" />
+      <el-tab-pane :label="`全部 (${counts.all})`" name="all" />
+      <el-tab-pane :label="`待审核 (${counts['待审核']})`" name="待审核" />
+      <el-tab-pane :label="`已上架 (${counts['已上架']})`" name="已上架" />
+      <el-tab-pane :label="`已拒绝 (${counts['已拒绝']})`" name="已拒绝" />
     </el-tabs>
 
-    <el-empty v-if="filteredProducts().length === 0" description="暂无商品" />
+    <el-empty v-if="products.length === 0" description="暂无商品" />
 
     <div v-else class="product-grid">
-      <div v-for="p in filteredProducts()" :key="p.id" class="product-card" @click="goToDetail(p.id)">
+      <div v-for="p in products" :key="p.id" class="product-card" @click="goToDetail(p.id)">
         <img :src="p.coverImage" class="cover" />
         <div class="info">
           <div class="title-row">

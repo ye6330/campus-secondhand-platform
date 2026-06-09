@@ -11,7 +11,7 @@ public interface ProductService {
 
     List<String> suggest(String keyword);
 
-    List<ProductVO> listMy(Long userId);
+    List<ProductVO> listMy(Long userId, String status);
 
     ProductVO getById(Long id);
 
