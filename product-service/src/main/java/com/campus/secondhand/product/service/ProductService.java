@@ -25,6 +25,8 @@ public interface ProductService {
 
     void relist(Long id);
 
+    void markSold(Long id);
+
     List<ProductVO> listPending();
 
     void review(Long id, String action);

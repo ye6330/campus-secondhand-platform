@@ -3,6 +3,7 @@ package com.campus.secondhand.user.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
 @ApiModel("注册请求")
 public class RegisterRequest {
@@ -19,6 +20,8 @@ public class RegisterRequest {
     @ApiModelProperty("昵称")
     private String nickname;
 
+    @NotBlank
+    @Pattern(regexp = "^1\\d{10}$", message = "手机号格式不正确")
     @ApiModelProperty("手机号")
     private String phone;
 

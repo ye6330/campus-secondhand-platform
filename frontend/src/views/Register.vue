@@ -40,8 +40,12 @@ onMounted(() => {
 })
 
 const handleRegister = async () => {
-  if (!form.value.username || !form.value.password || !form.value.nickname || !form.value.captchaCode) {
+  if (!form.value.username || !form.value.password || !form.value.nickname || !form.value.phone || !form.value.captchaCode) {
     ElMessage.warning('请填写必要信息')
+    return
+  }
+  if (!/^1\d{10}$/.test(form.value.phone)) {
+    ElMessage.warning('请输入正确的11位手机号')
     return
   }
   if (form.value.password !== form.value.confirmPassword) {
@@ -132,8 +136,9 @@ const handleRegister = async () => {
           <el-form-item>
             <el-input
               v-model="form.phone"
-              placeholder="手机号（选填）"
+              placeholder="手机号"
               :prefix-icon="Iphone"
+              maxlength="11"
               size="large"
             />
           </el-form-item>

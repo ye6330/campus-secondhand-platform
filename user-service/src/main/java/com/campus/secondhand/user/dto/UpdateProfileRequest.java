@@ -10,7 +10,8 @@ public class UpdateProfileRequest {
     @Size(max = 50)
     private String nickname;
 
-    @Pattern(regexp = "^$|^1\\d{10}$", message = "手机号格式不正确")
+    @NotBlank
+    @Pattern(regexp = "^1\\d{10}$", message = "手机号格式不正确")
     private String phone;
 
     public String getNickname() {

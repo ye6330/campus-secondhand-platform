@@ -19,6 +19,9 @@ const commentContent = ref('')
 const reportVisible = ref(false)
 const reportSubmitting = ref(false)
 const reportReason = ref('')
+const orderVisible = ref(false)
+const orderSubmitting = ref(false)
+const orderNote = ref('')
 
 const loadDetail = async () => {
   loading.value = true
@@ -221,6 +224,27 @@ const submitReport = async () => {
     reportSubmitting.value = false
   }
 }
+
+const submitOrder = async () => {
+  orderSubmitting.value = true
+  try {
+    const res = await request.post('/api/orders', {
+      productId: Number(route.params.id),
+      note: orderNote.value.trim()
+    })
+    if (res.code === 200) {
+      ElMessage.success('购买意向已提交，请等待卖家确认')
+      orderVisible.value = false
+      orderNote.value = ''
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '提交购买意向失败')
+  } finally {
+    orderSubmitting.value = false
+  }
+}
 </script>
 
 <template>
@@ -245,6 +269,7 @@ const submitReport = async () => {
             <el-tag v-if="product.status === '待审核'" type="warning">待审核</el-tag>
             <el-tag v-else-if="product.status === '已上架'" type="success">已上架</el-tag>
             <el-tag v-else-if="product.status === '已下架'" type="info">已下架</el-tag>
+            <el-tag v-else-if="product.status === '已售出'" type="success">已售出</el-tag>
             <el-tag v-else-if="product.status === '已拒绝'" type="danger">已拒绝</el-tag>
           </div>
           <div class="detail-price-row">
@@ -257,6 +282,7 @@ const submitReport = async () => {
                 </el-icon>
                 <span>{{ product.favoriteCount || 0 }}</span>
               </div>
+              <el-button v-if="!isSeller && product.status === '已上架'" type="primary" plain @click="orderVisible = true">我想要</el-button>
               <el-button v-if="!isSeller" text type="danger" @click="reportVisible = true">举报商品</el-button>
             </div>
           </div>
@@ -322,6 +348,21 @@ const submitReport = async () => {
         <template #footer>
           <el-button @click="reportVisible = false">取消</el-button>
           <el-button type="danger" :loading="reportSubmitting" @click="submitReport">提交举报</el-button>
+        </template>
+      </el-dialog>
+
+      <el-dialog v-model="orderVisible" title="发起购买意向" width="480px">
+        <el-input
+          v-model="orderNote"
+          type="textarea"
+          :rows="4"
+          maxlength="200"
+          show-word-limit
+          placeholder="可以填写你的交易时间、地点偏好等（选填）"
+        />
+        <template #footer>
+          <el-button @click="orderVisible = false">取消</el-button>
+          <el-button type="primary" :loading="orderSubmitting" @click="submitOrder">提交意向</el-button>
         </template>
       </el-dialog>
     </div>

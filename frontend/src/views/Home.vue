@@ -12,7 +12,7 @@ const userStore = useUserStore()
 // 首页统计卡片（后续接真实数据）
 const stats = ref([
   { label: '在售商品', value: '—', icon: 'Goods' },
-  { label: '已完成订单', value: '—', icon: 'List' },
+  { label: '待确认订单', value: '—', icon: 'List' },
   { label: '我的收藏', value: '—', icon: 'Star' },
   { label: '消息通知', value: '—', icon: 'Bell' }
 ])
@@ -36,6 +36,17 @@ const loadFavoritesCount = async () => {
     }
   } catch (e) {
     // ignore
+  }
+}
+
+const loadPendingSellOrdersCount = async () => {
+  try {
+    const res = await request.get('/api/orders/sell', { params: { status: '待确认' } })
+    if (res.code === 200) {
+      stats.value[1].value = res.data.length
+    }
+  } catch (e) {
+    stats.value[1].value = '—'
   }
 }
 
@@ -74,6 +85,7 @@ const loadCurrentUser = async () => {
 onMounted(() => {
   loadCurrentUser()
   loadProductsCount()
+  loadPendingSellOrdersCount()
   loadFavoritesCount()
   loadNotificationsCount()
 })
@@ -92,6 +104,10 @@ const goToMyProducts = () => {
 
 const goToMyFavorites = () => {
   router.push('/my/favorites')
+}
+
+const goToMyOrders = () => {
+  router.push('/my/orders')
 }
 
 const goToMyNotifications = () => {
@@ -221,7 +237,8 @@ const handleAvatarFileChange = (e) => {
           v-for="stat in stats"
           :key="stat.label"
           class="stat-card"
-          @click="stat.label === '消息通知' ? goToMyNotifications() : null"
+          :class="{ highlight: (stat.label === '待确认订单' || stat.label === '消息通知') && stat.value !== '—' && Number(stat.value) > 0 }"
+          @click="stat.label === '消息通知' ? goToMyNotifications() : stat.label === '待确认订单' ? goToMyOrders() : null"
         >
           <el-icon :size="28" class="stat-icon"><component :is="stat.icon" /></el-icon>
           <div class="stat-info">
@@ -244,6 +261,11 @@ const handleAvatarFileChange = (e) => {
           <el-icon><Collection /></el-icon>
           浏览商品
         </el-button>
+        <el-button size="large" class="action-btn" @click="goToMyOrders">
+          <el-icon><List /></el-icon>
+          我的订单
+          <el-badge v-if="stats[1].value !== '—' && Number(stats[1].value) > 0" :value="stats[1].value" class="order-badge" />
+        </el-button>
         <el-button size="large" class="action-btn" @click="goToMyFavorites">
           <el-icon><StarFilled /></el-icon>
           我的收藏
@@ -251,6 +273,7 @@ const handleAvatarFileChange = (e) => {
         <el-button size="large" class="action-btn" @click="goToMyNotifications">
           <el-icon><Bell /></el-icon>
           我的通知
+          <el-badge v-if="stats[3].value !== '—' && Number(stats[3].value) > 0" :value="stats[3].value" class="order-badge" />
         </el-button>
       </div>
     </main>
@@ -389,6 +412,11 @@ const handleAvatarFileChange = (e) => {
   cursor: default;
 }
 
+.stat-card.highlight {
+  border: 1px solid rgba(245, 108, 108, 0.35);
+  box-shadow: 0 10px 28px rgba(245, 108, 108, 0.14);
+}
+
 .stat-icon {
   color: #667eea;
 }
@@ -420,6 +448,10 @@ const handleAvatarFileChange = (e) => {
   height: 48px;
   font-size: 15px;
   border-radius: 12px;
+}
+
+.order-badge {
+  margin-left: 8px;
 }
 
 @media (max-width: 768px) {

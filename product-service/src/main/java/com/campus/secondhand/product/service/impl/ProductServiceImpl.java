@@ -175,6 +175,23 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public void markSold(Long id) {
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new RuntimeException("商品不存在");
+        }
+        if (!product.getSellerId().equals(UserContext.getUserId())) {
+            throw new RuntimeException("无权操作此商品");
+        }
+        if (!"已上架".equals(product.getStatus())) {
+            throw new RuntimeException("只有已上架商品才能标记为已售出");
+        }
+        product.setStatus("已售出");
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+    }
+
+    @Override
     public List<ProductVO> listPending() {
         List<Product> products = productMapper.selectList(
             new LambdaQueryWrapper<Product>()

@@ -54,17 +54,20 @@ const handleAvatarFileChange = (e) => {
 const pendingCount = ref('—')
 const totalProducts = ref('—')
 const pendingReports = ref('—')
+const totalOrders = ref('—')
 
 const loadStats = async () => {
   try {
-    const [pendingRes, productRes, reportRes] = await Promise.all([
+    const [pendingRes, productRes, reportRes, orderRes] = await Promise.all([
       request.get('/api/products/pending'),
       request.get('/api/products'),
-      request.get('/api/reports/admin', { params: { status: '待处理' } })
+      request.get('/api/reports/admin', { params: { status: '待处理' } }),
+      request.get('/api/orders/admin')
     ])
     if (pendingRes.code === 200) pendingCount.value = pendingRes.data.length
     if (productRes.code === 200) totalProducts.value = productRes.data.length
     if (reportRes.code === 200) pendingReports.value = reportRes.data.length
+    if (orderRes.code === 200) totalOrders.value = orderRes.data.length
   } catch (e) {
     // silent
   }
@@ -98,6 +101,7 @@ onMounted(async () => {
 
 const goToReview = () => router.push('/admin/review')
 const goToReports = () => router.push('/admin/reports')
+const goToOrders = () => router.push('/admin/orders')
 const goToProducts = () => router.push('/products')
 
 const handleLogout = () => {
@@ -199,7 +203,7 @@ const handleLogout = () => {
         <div class="stat-card">
           <el-icon :size="28" class="stat-icon info"><List /></el-icon>
           <div class="stat-info">
-            <span class="stat-value">—</span>
+            <span class="stat-value">{{ totalOrders }}</span>
             <span class="stat-label">总订单</span>
           </div>
         </div>
@@ -214,6 +218,10 @@ const handleLogout = () => {
           <el-icon><WarningFilled /></el-icon>
           举报处理
           <el-badge v-if="pendingReports !== '—' && Number(pendingReports) > 0" :value="pendingReports" class="report-badge" />
+        </el-button>
+        <el-button type="primary" size="large" class="action-btn" @click="goToOrders">
+          <el-icon><Tickets /></el-icon>
+          订单管理
         </el-button>
         <el-button size="large" class="action-btn" @click="goToProducts">
           <el-icon><Collection /></el-icon>

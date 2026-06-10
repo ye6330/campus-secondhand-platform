@@ -96,6 +96,13 @@ public class ProductController {
         return ApiResponse.success(null);
     }
 
+    @ApiOperation("卖家标记商品已售出")
+    @PutMapping("/{id}/sold")
+    public ApiResponse<Void> markSold(@PathVariable Long id) {
+        productService.markSold(id);
+        return ApiResponse.success(null);
+    }
+
     @ApiOperation("待审核商品列表（仅admin）")
     @GetMapping("/pending")
     public ApiResponse<List<ProductVO>> listPending() {

@@ -72,6 +72,7 @@ public class UserServiceImpl implements UserService {
         Map<String, Object> result = new HashMap<>();
         result.put("userId", user.getId());
         result.put("username", user.getUsername());
+        result.put("phone", user.getPhone());
         return ApiResponse.success(result);
     }
 
@@ -105,6 +106,7 @@ public class UserServiceImpl implements UserService {
         result.put("nickname", user.getNickname());
         result.put("role", user.getRole());
         result.put("avatar", user.getAvatar());
+        result.put("phone", user.getPhone());
         return ApiResponse.success(result);
     }
 
@@ -174,6 +176,20 @@ public class UserServiceImpl implements UserService {
         user.setUpdatedAt(LocalDateTime.now());
         userMapper.updateById(user);
         return ApiResponse.success(null);
+    }
+
+    @Override
+    public ApiResponse<Map<String, Object>> contact(Long id) {
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            return ApiResponse.failed(404, "用户不存在");
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", user.getId());
+        result.put("username", user.getUsername());
+        result.put("nickname", user.getNickname());
+        result.put("phone", user.getPhone());
+        return ApiResponse.success(result);
     }
 
     private User getCurrentUserEntity() {

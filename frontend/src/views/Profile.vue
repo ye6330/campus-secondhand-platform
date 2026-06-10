@@ -54,6 +54,14 @@ const saveProfile = async () => {
     ElMessage.warning('请输入昵称')
     return
   }
+  if (!profileForm.value.phone.trim()) {
+    ElMessage.warning('请输入手机号')
+    return
+  }
+  if (!/^1\d{10}$/.test(profileForm.value.phone.trim())) {
+    ElMessage.warning('请输入正确的11位手机号')
+    return
+  }
   profileSubmitting.value = true
   try {
     const res = await request.put('/api/users/profile', {
@@ -148,8 +156,8 @@ const goBack = () => {
             <el-input v-model="profileForm.nickname" maxlength="50" placeholder="请输入昵称" />
           </el-form-item>
           <el-form-item label="手机号">
-            <el-input v-model="profileForm.phone" maxlength="11" placeholder="请输入手机号" />
-          </el-form-item>
+             <el-input v-model="profileForm.phone" maxlength="11" placeholder="请输入11位手机号" />
+           </el-form-item>
           <el-form-item>
             <el-button type="primary" :loading="profileSubmitting" @click="saveProfile">保存资料</el-button>
           </el-form-item>

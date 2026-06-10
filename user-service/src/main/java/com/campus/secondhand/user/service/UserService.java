@@ -15,4 +15,5 @@ public interface UserService {
     ApiResponse<String> updateAvatar(String avatarUrl);
     ApiResponse<Map<String, Object>> updateProfile(UpdateProfileRequest request);
     ApiResponse<Void> updatePassword(UpdatePasswordRequest request);
+    ApiResponse<Map<String, Object>> contact(Long id);
 }

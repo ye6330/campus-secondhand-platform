@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiOperation;
 import java.util.Map;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -64,6 +65,12 @@ public class UserController {
     @GetMapping("/me")
     public ApiResponse<Map<String, Object>> currentUser() {
         return userService.currentUser();
+    }
+
+    @ApiOperation("获取用户联系方式")
+    @GetMapping("/{id}/contact")
+    public ApiResponse<Map<String, Object>> contact(@PathVariable Long id) {
+        return userService.contact(id);
     }
 
     @ApiOperation("修改个人资料")

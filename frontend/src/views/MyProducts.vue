@@ -13,7 +13,8 @@ const counts = ref({
   '待审核': 0,
   '已上架': 0,
   '已拒绝': 0,
-  '已下架': 0
+  '已下架': 0,
+  '已售出': 0
 })
 
 const reloadAll = () => {
@@ -48,7 +49,8 @@ const loadCounts = async () => {
         '待审核': allProducts.filter(item => item.status === '待审核').length,
         '已上架': allProducts.filter(item => item.status === '已上架').length,
         '已拒绝': allProducts.filter(item => item.status === '已拒绝').length,
-        '已下架': allProducts.filter(item => item.status === '已下架').length
+        '已下架': allProducts.filter(item => item.status === '已下架').length,
+        '已售出': allProducts.filter(item => item.status === '已售出').length
       }
       return
     }
@@ -145,6 +147,7 @@ const handleRelist = (id, title) => {
       <el-tab-pane :label="`待审核 (${counts['待审核']})`" name="待审核" />
       <el-tab-pane :label="`已上架 (${counts['已上架']})`" name="已上架" />
       <el-tab-pane :label="`已下架 (${counts['已下架']})`" name="已下架" />
+      <el-tab-pane :label="`已售出 (${counts['已售出']})`" name="已售出" />
       <el-tab-pane :label="`已拒绝 (${counts['已拒绝']})`" name="已拒绝" />
     </el-tabs>
 
@@ -159,6 +162,7 @@ const handleRelist = (id, title) => {
             <el-tag size="small" v-if="p.status === '待审核'" type="warning">待审核</el-tag>
             <el-tag size="small" v-else-if="p.status === '已上架'" type="success">已上架</el-tag>
             <el-tag size="small" v-else-if="p.status === '已下架'" type="info">已下架</el-tag>
+            <el-tag size="small" v-else-if="p.status === '已售出'" type="success">已售出</el-tag>
             <el-tag size="small" v-else-if="p.status === '已拒绝'" type="danger">已拒绝</el-tag>
           </div>
           <p>{{ p.description }}</p>
