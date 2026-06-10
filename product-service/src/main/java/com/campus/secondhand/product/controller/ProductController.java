@@ -82,6 +82,20 @@ public class ProductController {
         return ApiResponse.success(null);
     }
 
+    @ApiOperation("卖家下架商品")
+    @PutMapping("/{id}/off-shelf")
+    public ApiResponse<Void> offShelf(@PathVariable Long id) {
+        productService.offShelf(id);
+        return ApiResponse.success(null);
+    }
+
+    @ApiOperation("卖家重新上架（进入待审核）")
+    @PutMapping("/{id}/relist")
+    public ApiResponse<Void> relist(@PathVariable Long id) {
+        productService.relist(id);
+        return ApiResponse.success(null);
+    }
+
     @ApiOperation("待审核商品列表（仅admin）")
     @GetMapping("/pending")
     public ApiResponse<List<ProductVO>> listPending() {

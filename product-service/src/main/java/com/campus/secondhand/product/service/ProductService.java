@@ -21,6 +21,10 @@ public interface ProductService {
 
     void deleteById(Long id);
 
+    void offShelf(Long id);
+
+    void relist(Long id);
+
     List<ProductVO> listPending();
 
     void review(Long id, String action);

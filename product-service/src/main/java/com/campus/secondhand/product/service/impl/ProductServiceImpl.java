@@ -141,6 +141,40 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public void offShelf(Long id) {
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new RuntimeException("商品不存在");
+        }
+        if (!product.getSellerId().equals(UserContext.getUserId())) {
+            throw new RuntimeException("无权操作此商品");
+        }
+        if (!"已上架".equals(product.getStatus())) {
+            throw new RuntimeException("只有已上架商品才能下架");
+        }
+        product.setStatus("已下架");
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+    }
+
+    @Override
+    public void relist(Long id) {
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new RuntimeException("商品不存在");
+        }
+        if (!product.getSellerId().equals(UserContext.getUserId())) {
+            throw new RuntimeException("无权操作此商品");
+        }
+        if (!"已下架".equals(product.getStatus())) {
+            throw new RuntimeException("只有已下架商品才能重新上架");
+        }
+        product.setStatus("待审核");
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+    }
+
+    @Override
     public List<ProductVO> listPending() {
         List<Product> products = productMapper.selectList(
             new LambdaQueryWrapper<Product>()

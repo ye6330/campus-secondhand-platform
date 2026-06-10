@@ -3,6 +3,8 @@ package com.campus.secondhand.user.controller;
 import com.campus.secondhand.common.core.result.ApiResponse;
 import com.campus.secondhand.user.dto.LoginRequest;
 import com.campus.secondhand.user.dto.RegisterRequest;
+import com.campus.secondhand.user.dto.UpdatePasswordRequest;
+import com.campus.secondhand.user.dto.UpdateProfileRequest;
 import com.campus.secondhand.user.service.FileService;
 import com.campus.secondhand.user.service.UserService;
 import io.swagger.annotations.Api;
@@ -62,5 +64,17 @@ public class UserController {
     @GetMapping("/me")
     public ApiResponse<Map<String, Object>> currentUser() {
         return userService.currentUser();
+    }
+
+    @ApiOperation("修改个人资料")
+    @PutMapping("/profile")
+    public ApiResponse<Map<String, Object>> updateProfile(@Validated @RequestBody UpdateProfileRequest request) {
+        return userService.updateProfile(request);
+    }
+
+    @ApiOperation("修改密码")
+    @PutMapping("/password")
+    public ApiResponse<Void> updatePassword(@Validated @RequestBody UpdatePasswordRequest request) {
+        return userService.updatePassword(request);
     }
 }

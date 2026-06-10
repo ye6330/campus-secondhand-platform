@@ -60,6 +60,18 @@ const routes = [
     component: () => import('../views/MyFavorites.vue')
   },
   {
+    path: '/my/notifications',
+    name: 'MyNotifications',
+    meta: { requiresAuth: true },
+    component: () => import('../views/MyNotifications.vue')
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    meta: { requiresAuth: true },
+    component: () => import('../views/Profile.vue')
+  },
+  {
     path: '/admin/home',
     name: 'AdminHome',
     meta: { requiresAuth: true },
@@ -70,6 +82,12 @@ const routes = [
     name: 'AdminReview',
     meta: { requiresAuth: true },
     component: () => import('../views/AdminReview.vue')
+  },
+  {
+    path: '/admin/reports',
+    name: 'AdminReports',
+    meta: { requiresAuth: true },
+    component: () => import('../views/AdminReports.vue')
   }
 ]
 

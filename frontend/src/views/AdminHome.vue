@@ -17,6 +17,10 @@ const handleAvatarCommand = (cmd) => {
     avatarPreviewVisible.value = true
   } else if (cmd === 'change') {
     avatarInput.value?.click()
+  } else if (cmd === 'profile') {
+    router.push('/profile')
+  } else if (cmd === 'password') {
+    router.push('/profile?tab=password')
   }
 }
 
@@ -49,15 +53,18 @@ const handleAvatarFileChange = (e) => {
 }
 const pendingCount = ref('—')
 const totalProducts = ref('—')
+const pendingReports = ref('—')
 
 const loadStats = async () => {
   try {
-    const [pendingRes, productRes] = await Promise.all([
+    const [pendingRes, productRes, reportRes] = await Promise.all([
       request.get('/api/products/pending'),
-      request.get('/api/products')
+      request.get('/api/products'),
+      request.get('/api/reports/admin', { params: { status: '待处理' } })
     ])
     if (pendingRes.code === 200) pendingCount.value = pendingRes.data.length
     if (productRes.code === 200) totalProducts.value = productRes.data.length
+    if (reportRes.code === 200) pendingReports.value = reportRes.data.length
   } catch (e) {
     // silent
   }
@@ -90,6 +97,7 @@ onMounted(async () => {
 })
 
 const goToReview = () => router.push('/admin/review')
+const goToReports = () => router.push('/admin/reports')
 const goToProducts = () => router.push('/products')
 
 const handleLogout = () => {
@@ -131,6 +139,8 @@ const handleLogout = () => {
             <el-dropdown-menu>
               <el-dropdown-item v-if="userStore.avatar" command="view">查看头像</el-dropdown-item>
               <el-dropdown-item command="change">{{ userStore.avatar ? '修改头像' : '设置头像' }}</el-dropdown-item>
+              <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+              <el-dropdown-item command="password">修改密码</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -182,8 +192,8 @@ const handleLogout = () => {
         <div class="stat-card">
           <el-icon :size="28" class="stat-icon success"><User /></el-icon>
           <div class="stat-info">
-            <span class="stat-value">—</span>
-            <span class="stat-label">注册用户</span>
+            <span class="stat-value">{{ pendingReports }}</span>
+            <span class="stat-label">待处理举报</span>
           </div>
         </div>
         <div class="stat-card">
@@ -199,6 +209,11 @@ const handleLogout = () => {
         <el-button type="warning" size="large" class="action-btn" @click="goToReview">
           <el-icon><Checked /></el-icon>
           商品审核
+        </el-button>
+        <el-button type="danger" size="large" class="action-btn" @click="goToReports">
+          <el-icon><WarningFilled /></el-icon>
+          举报处理
+          <el-badge v-if="pendingReports !== '—' && Number(pendingReports) > 0" :value="pendingReports" class="report-badge" />
         </el-button>
         <el-button size="large" class="action-btn" @click="goToProducts">
           <el-icon><Collection /></el-icon>
@@ -356,6 +371,10 @@ const handleLogout = () => {
   height: 48px;
   font-size: 15px;
   border-radius: 12px;
+}
+
+.report-badge {
+  margin-left: 8px;
 }
 
 @media (max-width: 768px) {

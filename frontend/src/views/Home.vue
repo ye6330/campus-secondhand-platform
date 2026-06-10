@@ -39,6 +39,17 @@ const loadFavoritesCount = async () => {
   }
 }
 
+const loadNotificationsCount = async () => {
+  try {
+    const res = await request.get('/api/notifications/unread-count')
+    if (res.code === 200) {
+      stats.value[3].value = res.data.count
+    }
+  } catch (e) {
+    stats.value[3].value = '—'
+  }
+}
+
 // 进入首页时从后端获取当前用户信息
 const loadCurrentUser = async () => {
   if (!userStore.token) {
@@ -64,6 +75,7 @@ onMounted(() => {
   loadCurrentUser()
   loadProductsCount()
   loadFavoritesCount()
+  loadNotificationsCount()
 })
 
 const goToPublish = () => {
@@ -80,6 +92,10 @@ const goToMyProducts = () => {
 
 const goToMyFavorites = () => {
   router.push('/my/favorites')
+}
+
+const goToMyNotifications = () => {
+  router.push('/my/notifications')
 }
 
 // 退出登录
@@ -104,6 +120,10 @@ const handleAvatarCommand = (cmd) => {
     avatarPreviewVisible.value = true
   } else if (cmd === 'change') {
     avatarInput.value?.click()
+  } else if (cmd === 'profile') {
+    router.push('/profile')
+  } else if (cmd === 'password') {
+    router.push('/profile?tab=password')
   }
 }
 
@@ -161,6 +181,8 @@ const handleAvatarFileChange = (e) => {
             <el-dropdown-menu>
               <el-dropdown-item v-if="userStore.avatar" command="view">查看头像</el-dropdown-item>
               <el-dropdown-item command="change">{{ userStore.avatar ? '修改头像' : '设置头像' }}</el-dropdown-item>
+              <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+              <el-dropdown-item command="password">修改密码</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -199,6 +221,7 @@ const handleAvatarFileChange = (e) => {
           v-for="stat in stats"
           :key="stat.label"
           class="stat-card"
+          @click="stat.label === '消息通知' ? goToMyNotifications() : null"
         >
           <el-icon :size="28" class="stat-icon"><component :is="stat.icon" /></el-icon>
           <div class="stat-info">
@@ -224,6 +247,10 @@ const handleAvatarFileChange = (e) => {
         <el-button size="large" class="action-btn" @click="goToMyFavorites">
           <el-icon><StarFilled /></el-icon>
           我的收藏
+        </el-button>
+        <el-button size="large" class="action-btn" @click="goToMyNotifications">
+          <el-icon><Bell /></el-icon>
+          我的通知
         </el-button>
       </div>
     </main>
@@ -356,6 +383,10 @@ const handleAvatarFileChange = (e) => {
 .stat-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.stat-card {
+  cursor: default;
 }
 
 .stat-icon {

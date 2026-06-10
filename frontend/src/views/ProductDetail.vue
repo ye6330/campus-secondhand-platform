@@ -16,6 +16,9 @@ const comments = ref([])
 const commentLoading = ref(false)
 const commentSubmitting = ref(false)
 const commentContent = ref('')
+const reportVisible = ref(false)
+const reportSubmitting = ref(false)
+const reportReason = ref('')
 
 const loadDetail = async () => {
   loading.value = true
@@ -108,6 +111,46 @@ const handleDelete = () => {
   }).catch(() => {})
 }
 
+const handleOffShelf = () => {
+  ElMessageBox.confirm('确定下架这个商品吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      const res = await request.put(`/api/products/${route.params.id}/off-shelf`)
+      if (res.code === 200) {
+        ElMessage.success('下架成功')
+        loadDetail()
+        return
+      }
+      throw new Error(res.message)
+    } catch (e) {
+      ElMessage.error(e?.response?.data?.message || e?.message || '下架失败')
+    }
+  }).catch(() => {})
+}
+
+const handleRelist = () => {
+  ElMessageBox.confirm('确定重新上架这个商品吗？重新上架后将进入待审核。', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'info'
+  }).then(async () => {
+    try {
+      const res = await request.put(`/api/products/${route.params.id}/relist`)
+      if (res.code === 200) {
+        ElMessage.success('已提交重新上架审核')
+        loadDetail()
+        return
+      }
+      throw new Error(res.message)
+    } catch (e) {
+      ElMessage.error(e?.response?.data?.message || e?.message || '重新上架失败')
+    }
+  }).catch(() => {})
+}
+
 const submitComment = async () => {
   if (!commentContent.value.trim()) {
     ElMessage.warning('请输入留言内容')
@@ -153,6 +196,31 @@ const deleteComment = async (item) => {
     }
   }
 }
+
+const submitReport = async () => {
+  if (!reportReason.value.trim()) {
+    ElMessage.warning('请输入举报原因')
+    return
+  }
+  reportSubmitting.value = true
+  try {
+    const res = await request.post('/api/reports', {
+      productId: Number(route.params.id),
+      reason: reportReason.value.trim()
+    })
+    if (res.code === 200) {
+      ElMessage.success('举报已提交，请等待管理员处理')
+      reportVisible.value = false
+      reportReason.value = ''
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.message || e?.message || '举报提交失败')
+  } finally {
+    reportSubmitting.value = false
+  }
+}
 </script>
 
 <template>
@@ -162,6 +230,8 @@ const deleteComment = async (item) => {
         <el-button @click="goBack">&lt; 返回列表</el-button>
         <div class="detail-actions" v-if="isSeller">
           <el-button type="primary" @click="goToEdit">编辑</el-button>
+          <el-button v-if="product.status === '已上架'" type="warning" @click="handleOffShelf">下架</el-button>
+          <el-button v-if="product.status === '已下架'" type="success" @click="handleRelist">上架</el-button>
           <el-button type="danger" @click="handleDelete">删除</el-button>
         </div>
       </div>
@@ -174,16 +244,20 @@ const deleteComment = async (item) => {
             <h1>{{ product.title }}</h1>
             <el-tag v-if="product.status === '待审核'" type="warning">待审核</el-tag>
             <el-tag v-else-if="product.status === '已上架'" type="success">已上架</el-tag>
+            <el-tag v-else-if="product.status === '已下架'" type="info">已下架</el-tag>
             <el-tag v-else-if="product.status === '已拒绝'" type="danger">已拒绝</el-tag>
           </div>
           <div class="detail-price-row">
             <div class="detail-price">￥{{ product.price }}</div>
-            <div class="detail-fav" @click="toggleFavorite">
-              <el-icon :color="product.favorited ? '#e6a23c' : '#c0c4cc'" :size="22" style="cursor:pointer">
-                <StarFilled v-if="product.favorited" />
-                <Star v-else />
-              </el-icon>
-              <span>{{ product.favoriteCount || 0 }}</span>
+            <div class="detail-actions-row">
+              <div class="detail-fav" @click="toggleFavorite">
+                <el-icon :color="product.favorited ? '#e6a23c' : '#c0c4cc'" :size="22" style="cursor:pointer">
+                  <StarFilled v-if="product.favorited" />
+                  <Star v-else />
+                </el-icon>
+                <span>{{ product.favoriteCount || 0 }}</span>
+              </div>
+              <el-button v-if="!isSeller" text type="danger" @click="reportVisible = true">举报商品</el-button>
             </div>
           </div>
           <div class="detail-meta">
@@ -235,6 +309,21 @@ const deleteComment = async (item) => {
           </div>
         </div>
       </div>
+
+      <el-dialog v-model="reportVisible" title="举报商品" width="480px">
+        <el-input
+          v-model="reportReason"
+          type="textarea"
+          :rows="4"
+          maxlength="200"
+          show-word-limit
+          placeholder="请填写举报原因，例如虚假信息、违规商品、恶意描述等"
+        />
+        <template #footer>
+          <el-button @click="reportVisible = false">取消</el-button>
+          <el-button type="danger" :loading="reportSubmitting" @click="submitReport">提交举报</el-button>
+        </template>
+      </el-dialog>
     </div>
   </div>
 </template>
@@ -383,8 +472,15 @@ const deleteComment = async (item) => {
 .detail-price-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
   margin-bottom: 16px;
+}
+
+.detail-actions-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .detail-price {

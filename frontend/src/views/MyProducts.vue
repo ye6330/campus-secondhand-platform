@@ -12,8 +12,14 @@ const counts = ref({
   all: 0,
   '待审核': 0,
   '已上架': 0,
-  '已拒绝': 0
+  '已拒绝': 0,
+  '已下架': 0
 })
+
+const reloadAll = () => {
+  loadMyProducts()
+  loadCounts()
+}
 
 const loadMyProducts = async () => {
   loading.value = true
@@ -41,7 +47,8 @@ const loadCounts = async () => {
         all: allProducts.length,
         '待审核': allProducts.filter(item => item.status === '待审核').length,
         '已上架': allProducts.filter(item => item.status === '已上架').length,
-        '已拒绝': allProducts.filter(item => item.status === '已拒绝').length
+        '已拒绝': allProducts.filter(item => item.status === '已拒绝').length,
+        '已下架': allProducts.filter(item => item.status === '已下架').length
       }
       return
     }
@@ -71,16 +78,55 @@ const handleDelete = (id, title) => {
     type: 'warning'
   }).then(async () => {
     try {
-      const res = await request.delete(`/api/products/${id}`)
+        const res = await request.delete(`/api/products/${id}`)
+        if (res.code === 200) {
+          ElMessage.success('删除成功')
+          reloadAll()
+          return
+        }
+      throw new Error(res.message)
+    } catch (e) {
+      ElMessage.error(e?.response?.data?.message || e?.message || '删除失败')
+    }
+  }).catch(() => {})
+}
+
+const handleOffShelf = (id, title) => {
+  ElMessageBox.confirm(`确定下架「${title}」？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      const res = await request.put(`/api/products/${id}/off-shelf`)
       if (res.code === 200) {
-        ElMessage.success('删除成功')
-        loadMyProducts()
-        loadCounts()
+        ElMessage.success('下架成功')
+        reloadAll()
         return
       }
       throw new Error(res.message)
     } catch (e) {
-      ElMessage.error(e?.response?.data?.message || e?.message || '删除失败')
+      ElMessage.error(e?.response?.data?.message || e?.message || '下架失败')
+    }
+  }).catch(() => {})
+}
+
+const handleRelist = (id, title) => {
+  ElMessageBox.confirm(`确定重新上架「${title}」？重新上架后将进入待审核。`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'info'
+  }).then(async () => {
+    try {
+      const res = await request.put(`/api/products/${id}/relist`)
+      if (res.code === 200) {
+        ElMessage.success('已提交重新上架审核')
+        reloadAll()
+        return
+      }
+      throw new Error(res.message)
+    } catch (e) {
+      ElMessage.error(e?.response?.data?.message || e?.message || '重新上架失败')
     }
   }).catch(() => {})
 }
@@ -98,6 +144,7 @@ const handleDelete = (id, title) => {
       <el-tab-pane :label="`全部 (${counts.all})`" name="all" />
       <el-tab-pane :label="`待审核 (${counts['待审核']})`" name="待审核" />
       <el-tab-pane :label="`已上架 (${counts['已上架']})`" name="已上架" />
+      <el-tab-pane :label="`已下架 (${counts['已下架']})`" name="已下架" />
       <el-tab-pane :label="`已拒绝 (${counts['已拒绝']})`" name="已拒绝" />
     </el-tabs>
 
@@ -111,6 +158,7 @@ const handleDelete = (id, title) => {
             <strong>{{ p.title }}</strong>
             <el-tag size="small" v-if="p.status === '待审核'" type="warning">待审核</el-tag>
             <el-tag size="small" v-else-if="p.status === '已上架'" type="success">已上架</el-tag>
+            <el-tag size="small" v-else-if="p.status === '已下架'" type="info">已下架</el-tag>
             <el-tag size="small" v-else-if="p.status === '已拒绝'" type="danger">已拒绝</el-tag>
           </div>
           <p>{{ p.description }}</p>
@@ -121,6 +169,8 @@ const handleDelete = (id, title) => {
         </div>
         <div class="actions" @click.stop>
           <el-button size="small" @click="router.push(`/products/${p.id}/edit`)">编辑</el-button>
+          <el-button v-if="p.status === '已上架'" size="small" type="warning" @click="handleOffShelf(p.id, p.title)">下架</el-button>
+          <el-button v-if="p.status === '已下架'" size="small" type="success" @click="handleRelist(p.id, p.title)">上架</el-button>
           <el-button size="small" type="danger" @click="handleDelete(p.id, p.title)">删除</el-button>
         </div>
       </div>

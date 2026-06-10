@@ -6,6 +6,8 @@ import com.campus.secondhand.common.security.context.UserContext;
 import com.campus.secondhand.common.security.jwt.JwtTokenService;
 import com.campus.secondhand.user.dto.LoginRequest;
 import com.campus.secondhand.user.dto.RegisterRequest;
+import com.campus.secondhand.user.dto.UpdatePasswordRequest;
+import com.campus.secondhand.user.dto.UpdateProfileRequest;
 import com.campus.secondhand.user.entity.User;
 import com.campus.secondhand.user.mapper.UserMapper;
 import com.campus.secondhand.user.service.CaptchaService;
@@ -147,5 +149,42 @@ public class UserServiceImpl implements UserService {
         result.put("role", user.getRole());
         result.put("status", user.getStatus());
         return ApiResponse.success(result);
+    }
+
+    @Override
+    public ApiResponse<Map<String, Object>> updateProfile(UpdateProfileRequest request) {
+        User user = getCurrentUserEntity();
+        user.setNickname(request.getNickname().trim());
+        user.setPhone(request.getPhone() == null ? "" : request.getPhone().trim());
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        return currentUser();
+    }
+
+    @Override
+    public ApiResponse<Void> updatePassword(UpdatePasswordRequest request) {
+        User user = getCurrentUserEntity();
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            return ApiResponse.failed(400, "原密码错误");
+        }
+        if (request.getOldPassword().equals(request.getNewPassword())) {
+            return ApiResponse.failed(400, "新密码不能和原密码相同");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userMapper.updateById(user);
+        return ApiResponse.success(null);
+    }
+
+    private User getCurrentUserEntity() {
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            throw new RuntimeException("未登录");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        return user;
     }
 }
