@@ -75,6 +75,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductVO> listBySeller(Long sellerId) {
+        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
+            .eq(Product::getSellerId, sellerId)
+            .eq(Product::getStatus, "已上架")
+            .orderByDesc(Product::getId);
+        return toVOList(productMapper.selectList(wrapper));
+    }
+
+    @Override
     public ProductVO getById(Long id) {
         Product product = productMapper.selectById(id);
         if (product == null) {

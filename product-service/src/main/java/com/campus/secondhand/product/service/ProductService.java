@@ -13,6 +13,8 @@ public interface ProductService {
 
     List<ProductVO> listMy(Long userId, String status);
 
+    List<ProductVO> listBySeller(Long sellerId);
+
     ProductVO getById(Long id);
 
     ProductVO create(CreateProductRequest request);

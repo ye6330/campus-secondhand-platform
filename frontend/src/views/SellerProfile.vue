@@ -1,82 +1,49 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { StarFilled, Star } from '@element-plus/icons-vue'
 import request from '../utils/request'
 
+const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const products = ref([])
-const keyword = ref('')
+const sellerName = ref('卖家')
 
-const loadProducts = async (kw) => {
+const loadSellerProducts = async () => {
   loading.value = true
   try {
-    const params = kw ? { keyword: kw } : {}
-    const res = await request.get('/api/products', { params })
+    const res = await request.get(`/api/products/seller/${route.params.sellerId}`)
     if (res.code === 200) {
-      products.value = res.data
+      products.value = res.data || []
+      if (products.value.length > 0) {
+        sellerName.value = products.value[0].sellerName || '卖家'
+      }
       return
     }
     throw new Error(res.message)
   } catch (e) {
-    ElMessage.error(e?.response?.data?.message || e?.message || '加载商品列表失败')
+    ElMessage.error(e?.response?.data?.message || e?.message || '加载卖家主页失败')
   } finally {
     loading.value = false
   }
 }
 
 onMounted(() => {
-  loadProducts()
+  loadSellerProducts()
 })
 
-const querySearch = async (queryString, cb) => {
-  if (!queryString.trim()) {
-    cb([])
-    return
-  }
-  try {
-    const res = await request.get('/api/products/suggest', { params: { keyword: queryString } })
-    if (res.code === 200) {
-      cb(res.data.map(v => ({ value: v })))
-      return
-    }
-  } catch (e) {
-    // silent
-  }
-  cb([])
-}
+watch(() => route.params.sellerId, () => {
+  loadSellerProducts()
+})
 
-const handleSearch = () => {
-  loadProducts(keyword.value.trim())
-}
-
-const handleSelect = (item) => {
-  keyword.value = item.value
-  loadProducts(item.value)
-}
-
-const clearSearch = () => {
-  keyword.value = ''
-  loadProducts()
-}
-
-const goBackHome = () => {
-  router.push('/home')
-}
-
-const goToPublish = () => {
-  router.push('/products/publish')
+const goBack = () => {
+  router.back()
 }
 
 const goToDetail = (id) => {
   router.push(`/products/${id}`)
-}
-
-const goToSeller = (e, sellerId) => {
-  e.stopPropagation()
-  router.push(`/seller/${sellerId}`)
 }
 
 const toggleFavorite = async (e, product) => {
@@ -105,36 +72,19 @@ const toggleFavorite = async (e, product) => {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" v-loading="loading">
     <div class="page-header">
+      <el-button @click="goBack">&lt; 返回</el-button>
       <div>
-        <h2>商品广场</h2>
-        <p>浏览所有已上架的商品。</p>
+        <h2>{{ sellerName }}的主页</h2>
+        <p>查看该卖家当前在售的商品</p>
       </div>
-      <div class="page-actions">
-        <el-button @click="goBackHome">返回首页</el-button>
-        <el-button type="primary" @click="goToPublish">发布商品</el-button>
-      </div>
+      <div class="placeholder"></div>
     </div>
 
-    <div class="search-row">
-      <el-autocomplete
-        v-model="keyword"
-        :fetch-suggestions="querySearch"
-        placeholder="搜索商品..."
-        :trigger-on-focus="false"
-        clearable
-        @keyup.enter="handleSearch"
-        @select="handleSelect"
-        class="search-input"
-      />
-      <el-button type="primary" @click="handleSearch">搜索</el-button>
-      <el-button v-if="keyword" @click="clearSearch">清除</el-button>
-    </div>
+    <el-empty v-if="!loading && products.length === 0" description="该卖家暂时没有在售商品" />
 
-    <el-empty v-if="!loading && products.length === 0" description="暂无商品" />
-
-    <div v-else class="product-grid" v-loading="loading">
+    <div v-else class="product-grid">
       <div v-for="product in products" :key="product.id" class="product-card" @click="goToDetail(product.id)">
         <img :src="product.coverImage" alt="商品封面" class="product-cover" />
         <div class="price-row">
@@ -144,10 +94,6 @@ const toggleFavorite = async (e, product) => {
         <h3>{{ product.title }}</h3>
         <p>{{ product.description }}</p>
         <div class="footer-row">
-          <span>
-            卖家：
-            <button class="seller-link" @click="goToSeller($event, product.sellerId)">{{ product.sellerName }}</button>
-          </span>
           <div class="card-stats" @click.stop>
             <span class="view-count">浏览 {{ product.viewCount || 0 }}</span>
             <span class="fav-action">
@@ -176,44 +122,35 @@ const toggleFavorite = async (e, product) => {
   padding: 32px 20px;
 }
 
-.page-header {
+.page-header,
+.product-grid {
   max-width: 1100px;
-  margin: 0 auto 24px;
+  margin: 0 auto;
+}
+
+.page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 24px;
   gap: 16px;
 }
 
 .page-header h2 {
-  font-size: 28px;
+  margin: 0 0 8px;
   color: #303133;
-  margin-bottom: 8px;
 }
 
 .page-header p {
+  margin: 0;
   color: #909399;
 }
 
-.page-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.search-row {
-  max-width: 1100px;
-  margin: 0 auto 24px;
-  display: flex;
-  gap: 12px;
-}
-
-.search-input {
-  flex: 1;
+.placeholder {
+  width: 72px;
 }
 
 .product-grid {
-  max-width: 1100px;
-  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
@@ -280,19 +217,6 @@ const toggleFavorite = async (e, product) => {
   color: #909399;
 }
 
-.seller-link {
-  border: none;
-  background: transparent;
-  color: #409eff;
-  cursor: pointer;
-  padding: 0;
-  font-size: inherit;
-}
-
-.seller-link:hover {
-  color: #66b1ff;
-}
-
 .product-card h3 {
   font-size: 20px;
   color: #303133;
@@ -309,6 +233,9 @@ const toggleFavorite = async (e, product) => {
   .product-grid {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 640px) {
   .page-header {
     flex-direction: column;
     align-items: flex-start;

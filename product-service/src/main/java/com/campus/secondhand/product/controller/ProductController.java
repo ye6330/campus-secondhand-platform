@@ -57,6 +57,12 @@ public class ProductController {
         return ApiResponse.success(productService.listMy(userId, status));
     }
 
+    @ApiOperation("查看卖家在售商品")
+    @GetMapping("/seller/{sellerId}")
+    public ApiResponse<List<ProductVO>> listBySeller(@PathVariable Long sellerId) {
+        return ApiResponse.success(productService.listBySeller(sellerId));
+    }
+
     @ApiOperation("商品详情")
     @GetMapping("/{id}")
     public ApiResponse<ProductVO> detail(@PathVariable Long id) {

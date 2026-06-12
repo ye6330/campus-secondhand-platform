@@ -70,6 +70,11 @@ const goToEdit = () => {
   router.push(`/products/${route.params.id}/edit`)
 }
 
+const goToSeller = () => {
+  if (!product.value?.sellerId) return
+  router.push(`/seller/${product.value.sellerId}`)
+}
+
 const toggleFavorite = async () => {
   if (!product.value) return
   try {
@@ -287,7 +292,10 @@ const submitOrder = async () => {
             </div>
           </div>
           <div class="detail-meta">
-            <span>卖家：{{ product.sellerName }}</span>
+            <span>
+              卖家：
+              <button class="seller-link" @click="goToSeller">{{ product.sellerName }}</button>
+            </span>
             <span>发布时间：{{ product.createdAt }}</span>
             <span>浏览量：{{ product.viewCount || 0 }}</span>
           </div>
@@ -545,6 +553,19 @@ const submitOrder = async () => {
   gap: 24px;
   color: #909399;
   font-size: 14px;
+}
+
+.seller-link {
+  border: none;
+  background: transparent;
+  color: #409eff;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+
+.seller-link:hover {
+  color: #66b1ff;
 }
 
 .detail-desc h3 {
