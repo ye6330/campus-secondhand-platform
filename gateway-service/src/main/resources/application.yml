@@ -43,6 +43,10 @@ spring:
           uri: ${ORDER_SERVICE_URL:http://localhost:9103}
           predicates:
             - Path=/api/orders/**
+        - id: message-service
+          uri: ${USER_SERVICE_URL:http://localhost:9101}
+          predicates:
+            - Path=/api/messages/**
 
 management:
   endpoints:

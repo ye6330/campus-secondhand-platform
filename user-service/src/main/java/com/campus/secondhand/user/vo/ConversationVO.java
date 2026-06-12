@@ -9,6 +9,8 @@ public class ConversationVO {
     private String targetPhone;
     private String lastMessage;
     private String lastMessageTime;
+    private Boolean lastMessageMine;
+    private Boolean lastMessageRead;
     private Integer unreadCount;
 
     public Long getTargetUserId() { return targetUserId; }
@@ -27,4 +29,8 @@ public class ConversationVO {
     public void setLastMessageTime(String lastMessageTime) { this.lastMessageTime = lastMessageTime; }
     public Integer getUnreadCount() { return unreadCount; }
     public void setUnreadCount(Integer unreadCount) { this.unreadCount = unreadCount; }
+    public Boolean getLastMessageMine() { return lastMessageMine; }
+    public void setLastMessageMine(Boolean lastMessageMine) { this.lastMessageMine = lastMessageMine; }
+    public Boolean getLastMessageRead() { return lastMessageRead; }
+    public void setLastMessageRead(Boolean lastMessageRead) { this.lastMessageRead = lastMessageRead; }
 }

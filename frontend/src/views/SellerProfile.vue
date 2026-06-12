@@ -57,6 +57,10 @@ const goBack = () => {
   router.back()
 }
 
+const goToChat = () => {
+  router.push(`/my/messages/${route.params.sellerId}`)
+}
+
 const goToDetail = (id) => {
   router.push(`/products/${id}`)
 }
@@ -94,7 +98,7 @@ const toggleFavorite = async (e, product) => {
         <h2>{{ sellerName }}的主页</h2>
         <p>查看该卖家当前在售的商品</p>
       </div>
-      <div class="placeholder"></div>
+      <el-button type="primary" plain @click="goToChat">联系卖家</el-button>
     </div>
 
     <el-empty v-if="!loading && products.length === 0" description="该卖家暂时没有在售商品" />

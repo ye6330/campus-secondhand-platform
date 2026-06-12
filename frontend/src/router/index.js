@@ -78,6 +78,18 @@ const routes = [
     component: () => import('../views/MyNotifications.vue')
   },
   {
+    path: '/my/messages',
+    name: 'MyMessages',
+    meta: { requiresAuth: true },
+    component: () => import('../views/MyMessages.vue')
+  },
+  {
+    path: '/my/messages/:targetUserId',
+    name: 'ChatView',
+    meta: { requiresAuth: true },
+    component: () => import('../views/ChatView.vue')
+  },
+  {
     path: '/profile',
     name: 'Profile',
     meta: { requiresAuth: true },

@@ -16,6 +16,7 @@ const stats = ref([
   { label: '我的收藏', value: '—', icon: 'Star' },
   { label: '消息通知', value: '—', icon: 'Bell' }
 ])
+const unreadMessageCount = ref('—')
 
 const loadProductsCount = async () => {
   try {
@@ -61,6 +62,19 @@ const loadNotificationsCount = async () => {
   }
 }
 
+const loadUnreadMessagesCount = async () => {
+  try {
+    const res = await request.get('/api/messages/unread-count')
+    if (res.code === 200) {
+      unreadMessageCount.value = res.data.count
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    unreadMessageCount.value = '—'
+  }
+}
+
 // 进入首页时从后端获取当前用户信息
 const loadCurrentUser = async () => {
   if (!userStore.token) {
@@ -88,6 +102,7 @@ onMounted(() => {
   loadPendingSellOrdersCount()
   loadFavoritesCount()
   loadNotificationsCount()
+  loadUnreadMessagesCount()
 })
 
 const goToPublish = () => {
@@ -112,6 +127,10 @@ const goToMyOrders = () => {
 
 const goToMyNotifications = () => {
   router.push('/my/notifications')
+}
+
+const goToMyMessages = () => {
+  router.push('/my/messages')
 }
 
 // 退出登录
@@ -289,6 +308,16 @@ const handleAvatarFileChange = (e) => {
             <span>我的收藏</span>
           </div>
           <p>回看感兴趣商品</p>
+        </button>
+        <button class="action-card" @click="goToMyMessages">
+          <div class="action-top">
+            <el-icon><ChatDotSquare /></el-icon>
+            <span>我的私信</span>
+            <el-badge v-if="unreadMessageCount !== '—' && Number(unreadMessageCount) > 0" :value="unreadMessageCount" class="order-badge" />
+          </div>
+          <p :class="{ 'danger-text': unreadMessageCount !== '—' && Number(unreadMessageCount) > 0 }">
+            {{ unreadMessageCount !== '—' && Number(unreadMessageCount) > 0 ? '有未读私信，点击查看' : '查看买家卖家消息' }}
+          </p>
         </button>
         <button class="action-card" @click="goToMyNotifications">
           <div class="action-top">
@@ -531,6 +560,11 @@ const handleAvatarFileChange = (e) => {
   margin: 12px 0 0;
   font-size: 13px;
   color: #8a94a6;
+}
+
+.danger-text {
+  color: #f56c6c !important;
+  font-weight: 600;
 }
 
 .action-card.primary p {

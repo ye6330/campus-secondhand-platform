@@ -78,6 +78,8 @@ public class PrivateMessageServiceImpl implements PrivateMessageService {
                 conversation.setTargetPhone(targetUser == null ? "" : targetUser.getPhone());
                 conversation.setLastMessage(message.getContent());
                 conversation.setLastMessageTime(formatTime(message.getCreatedAt()));
+                conversation.setLastMessageMine(message.getFromUserId().equals(currentUserId));
+                conversation.setLastMessageRead(Integer.valueOf(1).equals(message.getReadStatus()));
                 conversation.setUnreadCount(0);
                 conversationMap.put(targetUserId, conversation);
             }

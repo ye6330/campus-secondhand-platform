@@ -99,6 +99,11 @@ const goToSeller = () => {
   router.push(`/seller/${product.value.sellerId}`)
 }
 
+const goToChatSeller = () => {
+  if (!product.value?.sellerId) return
+  router.push(`/my/messages/${product.value.sellerId}`)
+}
+
 const openImagePreview = () => {
   if (!product.value?.coverImage) return
   imagePreviewVisible.value = true
@@ -317,6 +322,7 @@ const submitOrder = async () => {
                 <span>{{ product.favoriteCount || 0 }}</span>
               </div>
               <el-button v-if="!isSeller && product.status === '已上架'" type="primary" plain @click="orderVisible = true">我想要</el-button>
+              <el-button v-if="!isSeller" plain @click="goToChatSeller">联系卖家</el-button>
               <el-button v-if="!isSeller" text type="danger" @click="reportVisible = true">举报商品</el-button>
             </div>
           </div>
