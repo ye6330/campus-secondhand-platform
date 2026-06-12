@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElImageViewer } from 'element-plus'
 import { StarFilled, Star } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { useUserStore } from '../store/user'
@@ -11,6 +12,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 const product = ref(null)
+const sellerPhone = ref('')
 const isSeller = ref(false)
 const comments = ref([])
 const commentLoading = ref(false)
@@ -22,6 +24,7 @@ const reportReason = ref('')
 const orderVisible = ref(false)
 const orderSubmitting = ref(false)
 const orderNote = ref('')
+const imagePreviewVisible = ref(false)
 
 const loadDetail = async () => {
   loading.value = true
@@ -38,6 +41,23 @@ const loadDetail = async () => {
     router.push('/products')
   } finally {
     loading.value = false
+  }
+}
+
+const loadSellerContact = async (sellerId) => {
+  if (!sellerId) {
+    sellerPhone.value = ''
+    return
+  }
+  try {
+    const res = await request.get(`/api/users/${sellerId}/contact`)
+    if (res.code === 200) {
+      sellerPhone.value = res.data?.phone || ''
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    sellerPhone.value = ''
   }
 }
 
@@ -58,7 +78,11 @@ const loadComments = async () => {
 }
 
 onMounted(() => {
-  loadDetail()
+  loadDetail().then(() => {
+    if (product.value?.sellerId) {
+      loadSellerContact(product.value.sellerId)
+    }
+  })
   loadComments()
 })
 
@@ -73,6 +97,11 @@ const goToEdit = () => {
 const goToSeller = () => {
   if (!product.value?.sellerId) return
   router.push(`/seller/${product.value.sellerId}`)
+}
+
+const openImagePreview = () => {
+  if (!product.value?.coverImage) return
+  imagePreviewVisible.value = true
 }
 
 const toggleFavorite = async () => {
@@ -266,7 +295,7 @@ const submitOrder = async () => {
       </div>
       <div class="detail-content">
         <div class="detail-image">
-          <img :src="product.coverImage" alt="商品封面" />
+          <img :src="product.coverImage" alt="商品封面" class="previewable-image" @click="openImagePreview" />
         </div>
         <div class="detail-info">
           <div class="detail-title-row">
@@ -292,12 +321,21 @@ const submitOrder = async () => {
             </div>
           </div>
           <div class="detail-meta">
-            <span>
-              卖家：
+            <div class="seller-inline">
+              <span class="meta-label">卖家</span>
               <button class="seller-link" @click="goToSeller">{{ product.sellerName }}</button>
-            </span>
-            <span>发布时间：{{ product.createdAt }}</span>
-            <span>浏览量：{{ product.viewCount || 0 }}</span>
+              <span class="phone-inline">{{ sellerPhone || '暂未填写' }}</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-inline">
+              <span class="meta-label">发布时间</span>
+              <span class="meta-value">{{ product.createdAt }}</span>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-inline">
+              <span class="meta-label">浏览量</span>
+              <span class="meta-value">{{ product.viewCount || 0 }}</span>
+            </div>
           </div>
           <el-divider />
           <div class="detail-desc">
@@ -373,6 +411,13 @@ const submitOrder = async () => {
           <el-button type="primary" :loading="orderSubmitting" @click="submitOrder">提交意向</el-button>
         </template>
       </el-dialog>
+
+      <el-image-viewer
+        v-if="imagePreviewVisible"
+        :url-list="[product.coverImage]"
+        :initial-index="0"
+        @close="imagePreviewVisible = false"
+      />
     </div>
   </div>
 </template>
@@ -501,6 +546,10 @@ const submitOrder = async () => {
   object-fit: cover;
 }
 
+.previewable-image {
+  cursor: zoom-in;
+}
+
 .detail-info {
   flex: 1;
 }
@@ -550,9 +599,47 @@ const submitOrder = async () => {
 
 .detail-meta {
   display: flex;
-  gap: 24px;
-  color: #909399;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.meta-inline,
+.seller-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.meta-inline {
+  color: #606266;
   font-size: 14px;
+}
+
+.meta-label {
+  color: #909399;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.meta-value {
+  color: #606266;
+}
+
+.phone-inline {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f4f6f8;
+  color: #606266;
+  font-size: 13px;
+}
+
+.meta-divider {
+  width: 1px;
+  height: 16px;
+  background: #e4e7ed;
 }
 
 .seller-link {
@@ -561,11 +648,28 @@ const submitOrder = async () => {
   color: #409eff;
   cursor: pointer;
   padding: 0;
-  font-size: inherit;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .seller-link:hover {
   color: #66b1ff;
+}
+
+@media (max-width: 768px) {
+  .detail-meta {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .meta-divider {
+    display: none;
+  }
+
+  .meta-inline,
+  .seller-inline {
+    width: 100%;
+  }
 }
 
 .detail-desc h3 {

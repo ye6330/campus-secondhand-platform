@@ -228,8 +228,11 @@ const handleAvatarFileChange = (e) => {
 
     <main class="home-main">
       <div class="welcome-card">
-        <h2>欢迎回来 👋</h2>
-        <p>今天有什么想买的，或者想卖的吗？</p>
+        <div>
+          <span class="welcome-badge">校园闲置交易</span>
+          <h2>欢迎回来</h2>
+          <p>看看今天有哪些值得带走的好东西，或者把你的闲置挂上来。</p>
+        </div>
       </div>
 
       <div class="stats-grid">
@@ -240,7 +243,9 @@ const handleAvatarFileChange = (e) => {
           :class="{ highlight: (stat.label === '待确认订单' || stat.label === '消息通知') && stat.value !== '—' && Number(stat.value) > 0 }"
           @click="stat.label === '消息通知' ? goToMyNotifications() : stat.label === '待确认订单' ? goToMyOrders() : null"
         >
-          <el-icon :size="28" class="stat-icon"><component :is="stat.icon" /></el-icon>
+          <div class="stat-icon-wrap">
+            <el-icon :size="24" class="stat-icon"><component :is="stat.icon" /></el-icon>
+          </div>
           <div class="stat-info">
             <span class="stat-value">{{ stat.value }}</span>
             <span class="stat-label">{{ stat.label }}</span>
@@ -249,32 +254,50 @@ const handleAvatarFileChange = (e) => {
       </div>
 
       <div class="quick-actions">
-        <el-button type="primary" size="large" class="action-btn" @click="goToPublish">
-          <el-icon><Plus /></el-icon>
-          发布商品
-        </el-button>
-        <el-button size="large" class="action-btn" @click="goToMyProducts">
-          <el-icon><Goods /></el-icon>
-          我的商品
-        </el-button>
-        <el-button size="large" class="action-btn" @click="goToProducts">
-          <el-icon><Collection /></el-icon>
-          浏览商品
-        </el-button>
-        <el-button size="large" class="action-btn" @click="goToMyOrders">
-          <el-icon><List /></el-icon>
-          我的订单
-          <el-badge v-if="stats[1].value !== '—' && Number(stats[1].value) > 0" :value="stats[1].value" class="order-badge" />
-        </el-button>
-        <el-button size="large" class="action-btn" @click="goToMyFavorites">
-          <el-icon><StarFilled /></el-icon>
-          我的收藏
-        </el-button>
-        <el-button size="large" class="action-btn" @click="goToMyNotifications">
-          <el-icon><Bell /></el-icon>
-          我的通知
-          <el-badge v-if="stats[3].value !== '—' && Number(stats[3].value) > 0" :value="stats[3].value" class="order-badge" />
-        </el-button>
+        <button class="action-card primary" @click="goToPublish">
+          <div class="action-top">
+            <el-icon><Plus /></el-icon>
+            <span>发布商品</span>
+          </div>
+          <p>快速挂出你的闲置</p>
+        </button>
+        <button class="action-card" @click="goToMyProducts">
+          <div class="action-top">
+            <el-icon><Goods /></el-icon>
+            <span>我的商品</span>
+          </div>
+          <p>查看发布和状态</p>
+        </button>
+        <button class="action-card" @click="goToProducts">
+          <div class="action-top">
+            <el-icon><Collection /></el-icon>
+            <span>购买商品</span>
+          </div>
+          <p>逛逛最新上架内容</p>
+        </button>
+        <button class="action-card" @click="goToMyOrders">
+          <div class="action-top">
+            <el-icon><List /></el-icon>
+            <span>我的订单</span>
+            <el-badge v-if="stats[1].value !== '—' && Number(stats[1].value) > 0" :value="stats[1].value" class="order-badge" />
+          </div>
+          <p>跟进待确认交易</p>
+        </button>
+        <button class="action-card" @click="goToMyFavorites">
+          <div class="action-top">
+            <el-icon><StarFilled /></el-icon>
+            <span>我的收藏</span>
+          </div>
+          <p>回看感兴趣商品</p>
+        </button>
+        <button class="action-card" @click="goToMyNotifications">
+          <div class="action-top">
+            <el-icon><Bell /></el-icon>
+            <span>我的通知</span>
+            <el-badge v-if="stats[3].value !== '—' && Number(stats[3].value) > 0" :value="stats[3].value" class="order-badge" />
+          </div>
+          <p>查看平台最新消息</p>
+        </button>
       </div>
     </main>
   </div>
@@ -350,18 +373,22 @@ const handleAvatarFileChange = (e) => {
 }
 
 .home-main {
-  max-width: 1000px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 24px 20px 36px;
 }
 
 .welcome-card {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 16px;
-  padding: 36px 40px;
+  background: linear-gradient(135deg, #5b6ee1 0%, #6a63d7 45%, #7a52b3 100%);
+  border-radius: 24px;
+  padding: 24px 28px;
   color: #fff;
-  margin-bottom: 32px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
   animation: slideDown 0.5s ease-out;
+  box-shadow: 0 18px 40px rgba(95, 103, 214, 0.22);
 }
 
 @keyframes slideDown {
@@ -376,30 +403,44 @@ const handleAvatarFileChange = (e) => {
 }
 
 .welcome-card h2 {
-  font-size: 24px;
-  margin-bottom: 8px;
+  font-size: 28px;
+  line-height: 1.15;
+  margin: 8px 0 10px;
 }
 
 .welcome-card p {
-  font-size: 15px;
-  opacity: 0.85;
+  font-size: 14px;
+  opacity: 0.88;
+  max-width: 620px;
+  margin: 0;
+}
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 11px;
+  letter-spacing: 0.8px;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 18px;
 }
 
 .stat-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(103, 116, 142, 0.08);
+  border-radius: 20px;
+  padding: 22px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 30px rgba(31, 41, 55, 0.06);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -413,12 +454,23 @@ const handleAvatarFileChange = (e) => {
 }
 
 .stat-card.highlight {
-  border: 1px solid rgba(245, 108, 108, 0.35);
-  box-shadow: 0 10px 28px rgba(245, 108, 108, 0.14);
+  border: 1px solid rgba(96, 96, 255, 0.18);
+  box-shadow: 0 16px 30px rgba(97, 97, 214, 0.14);
+  background: linear-gradient(180deg, #ffffff, #f8f8ff);
+}
+
+.stat-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(91, 110, 225, 0.14), rgba(122, 82, 179, 0.14));
 }
 
 .stat-icon {
-  color: #667eea;
+  color: #6170e1;
 }
 
 .stat-info {
@@ -427,27 +479,62 @@ const handleAvatarFileChange = (e) => {
 }
 
 .stat-value {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
-  color: #303133;
+  color: #1f2937;
 }
 
 .stat-label {
-  font-size: 13px;
-  color: #909399;
-  margin-top: 2px;
+  font-size: 14px;
+  color: #8a94a6;
+  margin-top: 4px;
 }
 
 .quick-actions {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
 }
 
-.action-btn {
-  flex: 1;
-  height: 48px;
-  font-size: 15px;
-  border-radius: 12px;
+.action-card {
+  border: 1px solid rgba(103, 116, 142, 0.12);
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 10px 24px rgba(31, 41, 55, 0.05);
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(91, 110, 225, 0.24);
+  box-shadow: 0 16px 30px rgba(91, 110, 225, 0.1);
+}
+
+.action-card.primary {
+  background: linear-gradient(135deg, #4294f0, #4a7eea);
+  color: #fff;
+  border: none;
+}
+
+.action-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.action-card p {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #8a94a6;
+}
+
+.action-card.primary p {
+  color: rgba(255, 255, 255, 0.84);
 }
 
 .order-badge {
@@ -455,9 +542,27 @@ const handleAvatarFileChange = (e) => {
 }
 
 @media (max-width: 768px) {
+  .home-main {
+    padding-top: 20px;
+  }
+
+  .welcome-card {
+    padding: 20px 18px;
+    flex-direction: column;
+  }
+
+  .welcome-card h2 {
+    font-size: 24px;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
   .home-header {
     padding: 0 16px;
   }

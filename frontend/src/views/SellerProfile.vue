@@ -30,12 +30,27 @@ const loadSellerProducts = async () => {
   }
 }
 
+const loadSellerContact = async () => {
+  try {
+    const res = await request.get(`/api/users/${route.params.sellerId}/contact`)
+    if (res.code === 200) {
+      sellerName.value = res.data?.nickname || res.data?.username || sellerName.value
+      return
+    }
+    throw new Error(res.message)
+  } catch (e) {
+    // ignore contact load failure for seller homepage
+  }
+}
+
 onMounted(() => {
   loadSellerProducts()
+  loadSellerContact()
 })
 
 watch(() => route.params.sellerId, () => {
   loadSellerProducts()
+  loadSellerContact()
 })
 
 const goBack = () => {
