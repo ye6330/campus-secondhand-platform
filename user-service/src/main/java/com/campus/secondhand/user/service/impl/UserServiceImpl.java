@@ -95,8 +95,8 @@ public class UserServiceImpl implements UserService {
             return ApiResponse.failed(400, "账号已被禁用");
         }
 
-        // 4. 生成 JWT token，里面包含 userId、username、role
-        String token = jwtTokenService.generateToken(user.getId(), user.getUsername(), user.getRole());
+        // 4. 生成 JWT token，里面包含 userId、username、nickname、role
+        String token = jwtTokenService.generateToken(user.getId(), user.getUsername(), user.getNickname(), user.getRole());
 
         // 5. 返回 token 和用户信息给前端
         Map<String, Object> result = new HashMap<>();
@@ -189,6 +189,7 @@ public class UserServiceImpl implements UserService {
         result.put("username", user.getUsername());
         result.put("nickname", user.getNickname());
         result.put("phone", user.getPhone());
+        result.put("avatar", user.getAvatar());
         return ApiResponse.success(result);
     }
 

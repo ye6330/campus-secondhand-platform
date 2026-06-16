@@ -1,4 +1,9 @@
+server:
+  port: 9105
+
 spring:
+  application:
+    name: campus-admin-service
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -7,6 +12,18 @@ spring:
       config:
         import-check:
           enabled: false
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:192.168.209.128}:${DB_PORT:3306}/trade_product_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
 
-server:
-  port: 9105
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "notificationClient", url = "${PRODUCT_SERVICE_URL:http://localhost:9102}")
+@FeignClient(name = "notificationClient", url = "${ADMIN_SERVICE_URL:http://localhost:9105}")
 public interface NotificationClient {
 
     @PostMapping("/api/notifications/system")

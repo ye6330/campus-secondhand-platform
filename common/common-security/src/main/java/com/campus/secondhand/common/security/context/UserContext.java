@@ -8,15 +8,17 @@ public final class UserContext {
 
     private static final ThreadLocal<Long> USER_ID_HOLDER = new ThreadLocal<>();
     private static final ThreadLocal<String> USERNAME_HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<String> NICKNAME_HOLDER = new ThreadLocal<>();
     private static final ThreadLocal<String> ROLE_HOLDER = new ThreadLocal<>();
 
     private UserContext() {
     }
 
     // 设置当前登录用户（JwtAuthenticationFilter 中调用）
-    public static void setUser(Long userId, String username, String role) {
+    public static void setUser(Long userId, String username, String nickname, String role) {
         USER_ID_HOLDER.set(userId);
         USERNAME_HOLDER.set(username);
+        NICKNAME_HOLDER.set(nickname);
         ROLE_HOLDER.set(role);
     }
 
@@ -30,6 +32,11 @@ public final class UserContext {
         return USERNAME_HOLDER.get();
     }
 
+    // 获取当前登录用户昵称
+    public static String getNickname() {
+        return NICKNAME_HOLDER.get();
+    }
+
     // 获取当前登录用户角色
     public static String getRole() {
         return ROLE_HOLDER.get();
@@ -39,6 +46,7 @@ public final class UserContext {
     public static void clear() {
         USER_ID_HOLDER.remove();
         USERNAME_HOLDER.remove();
+        NICKNAME_HOLDER.remove();
         ROLE_HOLDER.remove();
     }
 }

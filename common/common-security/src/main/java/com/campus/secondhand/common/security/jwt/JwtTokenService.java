@@ -23,11 +23,12 @@ public class JwtTokenService {
     }
 
     // 生成 JWT token（登录成功后调用）
-    // token 里包含 userId、username、role，以后请求时靠 token 识别用户
-    public String generateToken(Long userId, String username, String role) {
+    // token 里包含 userId、username、nickname、role，以后请求时靠 token 识别用户
+    public String generateToken(Long userId, String username, String nickname, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(SecurityConstants.USER_ID_CLAIM, userId);
         claims.put(SecurityConstants.USERNAME_CLAIM, username);
+        claims.put(SecurityConstants.NICKNAME_CLAIM, nickname);
         claims.put(SecurityConstants.ROLE_CLAIM, role);
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMillis);

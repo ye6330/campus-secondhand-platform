@@ -37,10 +37,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = jwtTokenService.parseToken(token);
                 Long userId = claims.get(SecurityConstants.USER_ID_CLAIM, Long.class);
                 String username = claims.get(SecurityConstants.USERNAME_CLAIM, String.class);
+                String nickname = claims.get(SecurityConstants.NICKNAME_CLAIM, String.class);
                 String role = claims.get(SecurityConstants.ROLE_CLAIM, String.class);
 
                 // 5. 存入 UserContext（内部用 ThreadLocal），后续业务代码可以直接拿当前用户
-                UserContext.setUser(userId, username, role);
+                UserContext.setUser(userId, username, nickname, role);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);

@@ -1,0 +1,3 @@
+-- admin-service 共享 trade_product_db 中的 report 和 notification 表
+-- 无需新建表，直接使用 product-service 初始化时创建的表
+-- product_init.sql 中已包含 report 和 notification 表的 DDL

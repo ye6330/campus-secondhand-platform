@@ -35,16 +35,20 @@ spring:
           uri: ${USER_SERVICE_URL:http://localhost:9101}
           predicates:
             - Path=/api/users/**
+        - id: admin-service
+          uri: ${ADMIN_SERVICE_URL:http://localhost:9105}
+          predicates:
+            - Path=/api/reports/**,/api/notifications/**
         - id: product-service
           uri: ${PRODUCT_SERVICE_URL:http://localhost:9102}
           predicates:
-            - Path=/api/products/**,/api/categories/**,/api/favorites/**,/api/comments/**,/api/reports/**,/api/notifications/**
+            - Path=/api/products/**,/api/categories/**,/api/favorites/**,/api/comments/**
         - id: order-service
           uri: ${ORDER_SERVICE_URL:http://localhost:9103}
           predicates:
             - Path=/api/orders/**
         - id: message-service
-          uri: ${USER_SERVICE_URL:http://localhost:9101}
+          uri: ${MESSAGE_SERVICE_URL:http://localhost:9104}
           predicates:
             - Path=/api/messages/**
 
