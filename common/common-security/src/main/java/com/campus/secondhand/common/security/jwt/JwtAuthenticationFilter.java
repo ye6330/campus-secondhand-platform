@@ -42,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // 5. 存入 UserContext（内部用 ThreadLocal），后续业务代码可以直接拿当前用户
                 UserContext.setUser(userId, username, nickname, role);
+                UserContext.setToken(token);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);

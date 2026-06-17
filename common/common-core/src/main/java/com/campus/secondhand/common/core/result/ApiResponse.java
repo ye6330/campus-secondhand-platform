@@ -1,5 +1,7 @@
 package com.campus.secondhand.common.core.result;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class ApiResponse<T> implements Serializable {
@@ -8,7 +10,8 @@ public class ApiResponse<T> implements Serializable {
     private final String message;
     private final T data;
 
-    private ApiResponse(int code, String message, T data) {
+    @JsonCreator
+    public ApiResponse(@JsonProperty("code") int code, @JsonProperty("message") String message, @JsonProperty("data") T data) {
         this.code = code;
         this.message = message;
         this.data = data;

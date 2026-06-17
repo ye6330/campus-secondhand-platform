@@ -2,13 +2,53 @@ package com.campus.secondhand.message.client;
 
 import com.campus.secondhand.common.core.result.ApiResponse;
 import java.util.Map;
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-@FeignClient(name = "campus-user-service", url = "${user-service.url:http://localhost:9101}")
-public interface UserServiceClient {
+@Component
+public class UserServiceClient {
 
-    @GetMapping("/api/users/{id}/contact")
-    ApiResponse<Map<String, Object>> getUserContact(@PathVariable("id") Long id);
+    private static final String USER_SERVICE_URL = "http://localhost:9101";
+
+    private final RestTemplate restTemplate;
+
+    public UserServiceClient() {
+        this.restTemplate = new RestTemplate();
+    }
+
+    public ApiResponse<Map<String, Object>> getUserContact(Long userId) {
+        String authHeader = getAuthHeader();
+        if (authHeader == null || authHeader.isEmpty()) {
+            return ApiResponse.failed(401, "未登录");
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", authHeader);
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        try {
+            return restTemplate.exchange(
+                USER_SERVICE_URL + "/api/users/" + userId + "/contact",
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<ApiResponse<Map<String, Object>>>() {}
+            ).getBody();
+        } catch (Exception e) {
+            return ApiResponse.failed(500, e.getMessage());
+        }
+    }
+
+    private String getAuthHeader() {
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            return null;
+        }
+        HttpServletRequest request = attributes.getRequest();
+        return request.getHeader("Authorization");
+    }
 }

@@ -37,14 +37,18 @@ public class PrivateMessageServiceImpl implements PrivateMessageService {
         if (currentUserId.equals(request.getToUserId())) {
             throw new RuntimeException("不能给自己发私信");
         }
+        Map<String, Object> currentUser = fetchUser(currentUserId);
+        if (currentUser == null) {
+            throw new RuntimeException("当前用户不存在");
+        }
         Map<String, Object> targetUser = fetchUser(request.getToUserId());
         if (targetUser == null) {
             throw new RuntimeException("接收方不存在");
         }
         PrivateMessage message = new PrivateMessage();
         message.setFromUserId(currentUserId);
-        message.setFromUsername(UserContext.getUsername());
-        message.setFromNickname(UserContext.getNickname());
+        message.setFromUsername((String) currentUser.getOrDefault("username", ""));
+        message.setFromNickname((String) currentUser.getOrDefault("nickname", ""));
         message.setToUserId(request.getToUserId());
         message.setToUsername((String) targetUser.get("username"));
         message.setToNickname((String) targetUser.get("nickname"));

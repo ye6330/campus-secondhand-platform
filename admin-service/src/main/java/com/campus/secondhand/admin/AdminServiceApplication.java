@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableFeignClients
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.campus.secondhand.admin", "com.campus.secondhand.common"})
 @MapperScan("com.campus.secondhand.admin.mapper")
 public class AdminServiceApplication {
 

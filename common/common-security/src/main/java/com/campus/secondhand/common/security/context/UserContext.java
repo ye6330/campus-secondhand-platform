@@ -10,6 +10,7 @@ public final class UserContext {
     private static final ThreadLocal<String> USERNAME_HOLDER = new ThreadLocal<>();
     private static final ThreadLocal<String> NICKNAME_HOLDER = new ThreadLocal<>();
     private static final ThreadLocal<String> ROLE_HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<String> TOKEN_HOLDER = new ThreadLocal<>();
 
     private UserContext() {
     }
@@ -20,6 +21,16 @@ public final class UserContext {
         USERNAME_HOLDER.set(username);
         NICKNAME_HOLDER.set(nickname);
         ROLE_HOLDER.set(role);
+    }
+
+    // 设置当前请求的 JWT token（Feign 传递用）
+    public static void setToken(String token) {
+        TOKEN_HOLDER.set(token);
+    }
+
+    // 获取当前请求的 JWT token
+    public static String getToken() {
+        return TOKEN_HOLDER.get();
     }
 
     // 获取当前登录用户 id
@@ -48,5 +59,6 @@ public final class UserContext {
         USERNAME_HOLDER.remove();
         NICKNAME_HOLDER.remove();
         ROLE_HOLDER.remove();
+        TOKEN_HOLDER.remove();
     }
 }

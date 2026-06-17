@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableFeignClients
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.campus.secondhand.message", "com.campus.secondhand.common"})
 @MapperScan("com.campus.secondhand.message.mapper")
 public class MessageServiceApplication {
 
