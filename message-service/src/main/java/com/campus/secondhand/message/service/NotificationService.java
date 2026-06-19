@@ -1,6 +1,6 @@
-package com.campus.secondhand.admin.service;
+package com.campus.secondhand.message.service;
 
-import com.campus.secondhand.admin.vo.NotificationVO;
+import com.campus.secondhand.message.vo.NotificationVO;
 import java.util.List;
 
 public interface NotificationService {

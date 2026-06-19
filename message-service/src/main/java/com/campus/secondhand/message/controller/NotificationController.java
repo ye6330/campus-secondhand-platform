@@ -1,8 +1,8 @@
-package com.campus.secondhand.admin.controller;
+package com.campus.secondhand.message.controller;
 
-import com.campus.secondhand.admin.dto.CreateNotificationRequest;
-import com.campus.secondhand.admin.service.NotificationService;
-import com.campus.secondhand.admin.vo.NotificationVO;
+import com.campus.secondhand.message.dto.CreateNotificationRequest;
+import com.campus.secondhand.message.service.NotificationService;
+import com.campus.secondhand.message.vo.NotificationVO;
 import com.campus.secondhand.common.core.result.ApiResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

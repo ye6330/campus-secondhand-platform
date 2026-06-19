@@ -1,11 +1,11 @@
 package com.campus.secondhand.order.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.campus.secondhand.common.core.constants.MQConstants;
+import com.campus.secondhand.common.core.dto.NotificationMessage;
 import com.campus.secondhand.common.security.context.UserContext;
-import com.campus.secondhand.order.client.NotificationClient;
 import com.campus.secondhand.order.client.ProductClient;
 import com.campus.secondhand.order.client.UserClient;
-import com.campus.secondhand.order.dto.CreateNotificationRequest;
 import com.campus.secondhand.order.dto.CreateOrderRequest;
 import com.campus.secondhand.order.dto.HandleOrderRequest;
 import com.campus.secondhand.order.entity.Order;
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,15 +28,15 @@ public class OrderServiceImpl implements OrderService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final OrderMapper orderMapper;
     private final ProductClient productClient;
-    private final NotificationClient notificationClient;
     private final UserClient userClient;
+    private final RabbitTemplate rabbitTemplate;
 
     public OrderServiceImpl(OrderMapper orderMapper, ProductClient productClient,
-        NotificationClient notificationClient, UserClient userClient) {
+        UserClient userClient, RabbitTemplate rabbitTemplate) {
         this.orderMapper = orderMapper;
         this.productClient = productClient;
-        this.notificationClient = notificationClient;
         this.userClient = userClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Override
@@ -292,13 +293,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void notifyUser(Long userId, String title, String content) {
-        CreateNotificationRequest request = new CreateNotificationRequest();
-        request.setUserId(userId);
-        request.setTitle(title);
-        request.setContent(content);
-        Map<String, Object> response = notificationClient.create(request);
-        if (!isSuccess(response)) {
-            throw new RuntimeException("通知创建失败");
+        try {
+            NotificationMessage message = new NotificationMessage(userId, title, content);
+            rabbitTemplate.convertAndSend(MQConstants.NOTIFICATION_EXCHANGE,
+                MQConstants.NOTIFICATION_ROUTING_KEY, message);
+        } catch (Exception e) {
+            throw new RuntimeException("通知发送失败", e);
         }
     }
 }

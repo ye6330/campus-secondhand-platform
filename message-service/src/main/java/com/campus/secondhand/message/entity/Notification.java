@@ -1,4 +1,4 @@
-package com.campus.secondhand.admin.entity;
+package com.campus.secondhand.message.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

@@ -3,6 +3,9 @@ package com.campus.secondhand.message.client;
 import com.campus.secondhand.common.core.result.ApiResponse;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,12 +18,17 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Component
 public class UserServiceClient {
 
-    private static final String USER_SERVICE_URL = "http://localhost:9101";
+    private static final String USER_SERVICE_URL = "http://campus-user-service";
 
-    private final RestTemplate restTemplate;
+    @Autowired
+    private RestTemplate loadBalancedRestTemplate;
 
-    public UserServiceClient() {
-        this.restTemplate = new RestTemplate();
+    private static class Config {
+        @Bean
+        @LoadBalanced
+        public RestTemplate loadBalancedRestTemplate() {
+            return new RestTemplate();
+        }
     }
 
     public ApiResponse<Map<String, Object>> getUserContact(Long userId) {
@@ -32,7 +40,7 @@ public class UserServiceClient {
         headers.add("Authorization", authHeader);
         HttpEntity<?> entity = new HttpEntity<>(headers);
         try {
-            return restTemplate.exchange(
+            return loadBalancedRestTemplate.exchange(
                 USER_SERVICE_URL + "/api/users/" + userId + "/contact",
                 HttpMethod.GET,
                 entity,

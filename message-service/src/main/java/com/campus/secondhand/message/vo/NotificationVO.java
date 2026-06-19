@@ -1,4 +1,4 @@
-package com.campus.secondhand.admin.vo;
+package com.campus.secondhand.message.vo;
 
 public class NotificationVO {
 

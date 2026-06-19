@@ -32,25 +32,25 @@ spring:
             allowCredentials: true
       routes:
         - id: user-service
-          uri: ${USER_SERVICE_URL:http://localhost:9101}
+          uri: lb://campus-user-service
           predicates:
             - Path=/api/users/**
         - id: admin-service
-          uri: ${ADMIN_SERVICE_URL:http://localhost:9105}
+          uri: lb://campus-admin-service
           predicates:
-            - Path=/api/reports/**,/api/notifications/**
+            - Path=/api/reports/**
         - id: product-service
-          uri: ${PRODUCT_SERVICE_URL:http://localhost:9102}
+          uri: lb://campus-product-service
           predicates:
             - Path=/api/products/**,/api/categories/**,/api/favorites/**,/api/comments/**
         - id: order-service
-          uri: ${ORDER_SERVICE_URL:http://localhost:9103}
+          uri: lb://campus-order-service
           predicates:
             - Path=/api/orders/**
         - id: message-service
-          uri: ${MESSAGE_SERVICE_URL:http://localhost:9104}
+          uri: lb://campus-message-service
           predicates:
-            - Path=/api/messages/**
+            - Path=/api/messages/**,/api/notifications/**
 
 management:
   endpoints:

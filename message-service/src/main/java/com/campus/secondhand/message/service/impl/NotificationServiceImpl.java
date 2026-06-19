@@ -1,10 +1,10 @@
-package com.campus.secondhand.admin.service.impl;
+package com.campus.secondhand.message.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.campus.secondhand.admin.entity.Notification;
-import com.campus.secondhand.admin.mapper.NotificationMapper;
-import com.campus.secondhand.admin.service.NotificationService;
-import com.campus.secondhand.admin.vo.NotificationVO;
+import com.campus.secondhand.message.entity.Notification;
+import com.campus.secondhand.message.mapper.NotificationMapper;
+import com.campus.secondhand.message.service.NotificationService;
+import com.campus.secondhand.message.vo.NotificationVO;
 import com.campus.secondhand.common.security.context.UserContext;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

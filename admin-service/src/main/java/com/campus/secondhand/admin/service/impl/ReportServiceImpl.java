@@ -1,19 +1,21 @@
 package com.campus.secondhand.admin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.campus.secondhand.admin.client.NotificationClient;
 import com.campus.secondhand.admin.dto.CreateReportRequest;
 import com.campus.secondhand.admin.dto.HandleReportRequest;
 import com.campus.secondhand.admin.entity.Product;
 import com.campus.secondhand.admin.entity.Report;
 import com.campus.secondhand.admin.mapper.ProductMapper;
 import com.campus.secondhand.admin.mapper.ReportMapper;
-import com.campus.secondhand.admin.service.NotificationService;
 import com.campus.secondhand.admin.service.ReportService;
 import com.campus.secondhand.admin.vo.ReportVO;
 import com.campus.secondhand.common.security.context.UserContext;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +25,13 @@ public class ReportServiceImpl implements ReportService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final ReportMapper reportMapper;
     private final ProductMapper productMapper;
-    private final NotificationService notificationService;
+    private final NotificationClient notificationClient;
 
     public ReportServiceImpl(ReportMapper reportMapper, ProductMapper productMapper,
-        NotificationService notificationService) {
+        NotificationClient notificationClient) {
         this.reportMapper = reportMapper;
         this.productMapper = productMapper;
-        this.notificationService = notificationService;
+        this.notificationClient = notificationClient;
     }
 
     @Override
@@ -127,19 +129,27 @@ public class ReportServiceImpl implements ReportService {
         String noteText = report.getHandleNote() == null || report.getHandleNote().isEmpty()
             ? ""
             : "，处理说明：" + report.getHandleNote();
-        notificationService.create(
+        notificationClient.create(buildRequest(
             report.getReporterId(),
             "举报处理结果",
             "你对商品《" + report.getProductTitle() + "》的举报结果为：" + resultText + noteText
-        );
+        ));
         if (product != null && product.getSellerId() != null && !product.getSellerId().equals(report.getReporterId())
             && ("违规已下架".equals(report.getStatus()) || "违规已删除".equals(report.getStatus()))) {
-            notificationService.create(
+            notificationClient.create(buildRequest(
                 product.getSellerId(),
                 "商品违规处理通知",
                 "你的商品《" + report.getProductTitle() + "》已被管理员处理，结果为：" + report.getStatus() + noteText
-            );
+            ));
         }
+    }
+
+    private Map<String, Object> buildRequest(Long userId, String title, String content) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("userId", userId);
+        req.put("title", title);
+        req.put("content", content);
+        return req;
     }
 
     private ReportVO toVO(Report report) {
