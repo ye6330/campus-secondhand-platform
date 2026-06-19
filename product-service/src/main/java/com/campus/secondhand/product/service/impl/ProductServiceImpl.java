@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,10 +23,13 @@ public class ProductServiceImpl implements ProductService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final ProductMapper productMapper;
     private final FavoriteMapper favoriteMapper;
+    private final Cache productCache;
 
-    public ProductServiceImpl(ProductMapper productMapper, FavoriteMapper favoriteMapper) {
+    public ProductServiceImpl(ProductMapper productMapper, FavoriteMapper favoriteMapper,
+        CacheManager cacheManager) {
         this.productMapper = productMapper;
         this.favoriteMapper = favoriteMapper;
+        this.productCache = cacheManager.getCache("products");
     }
 
     @Override
@@ -85,9 +90,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductVO getById(Long id) {
-        Product product = productMapper.selectById(id);
+        Product product = productCache.get(id, Product.class);
         if (product == null) {
-            throw new RuntimeException("商品不存在");
+            product = productMapper.selectById(id);
+            if (product == null) {
+                throw new RuntimeException("商品不存在");
+            }
+            productCache.put(id, product);
         }
         if ("已上架".equals(product.getStatus())) {
             int nextViewCount = product.getViewCount() == null ? 1 : product.getViewCount() + 1;
@@ -119,6 +128,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductVO update(Long id, UpdateProductRequest request) {
+        productCache.evict(id);
         Product product = productMapper.selectById(id);
         if (product == null) {
             throw new RuntimeException("商品不存在");
@@ -139,6 +149,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteById(Long id) {
+        productCache.evict(id);
         Product product = productMapper.selectById(id);
         if (product == null) {
             throw new RuntimeException("商品不存在");
@@ -151,6 +162,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void offShelf(Long id) {
+        productCache.evict(id);
         Product product = productMapper.selectById(id);
         if (product == null) {
             throw new RuntimeException("商品不存在");
@@ -168,6 +180,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void relist(Long id) {
+        productCache.evict(id);
         Product product = productMapper.selectById(id);
         if (product == null) {
             throw new RuntimeException("商品不存在");
@@ -185,6 +198,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void markSold(Long id) {
+        productCache.evict(id);
         Product product = productMapper.selectById(id);
         if (product == null) {
             throw new RuntimeException("商品不存在");
@@ -212,6 +226,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void review(Long id, String action) {
+        productCache.evict(id);
         String role = UserContext.getRole();
         if (!"ADMIN".equals(role)) {
             throw new RuntimeException("无权审核商品");

@@ -19,6 +19,12 @@ spring:
     url: jdbc:mysql://192.168.209.128:3306/trade_product_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
+  redis:
+    host: 192.168.209.128
+    port: 6379
+    password: 123456
+  cache:
+    type: redis
 
 oss:
   endpoint: oss-cn-beijing.aliyuncs.com
@@ -26,3 +32,7 @@ oss:
   access-key-id: ${OSS_ACCESS_KEY_ID}
   access-key-secret: ${OSS_ACCESS_KEY_SECRET}
   dir: products/
+
+logging:
+  level:
+    com.campus.secondhand.product.mapper: DEBUG
