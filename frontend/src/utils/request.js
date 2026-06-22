@@ -3,8 +3,8 @@ import axios from 'axios'
 // Axios 请求工具
 // 所有前端请求都经过这里，自动带上 token 并统一处理 401
 const request = axios.create({
-  // 前端统一请求 gateway，由 gateway 再转发到具体服务
-  baseURL: 'http://localhost:9000',
+  // 前端统一走 nginx，再由 nginx 代理 /api 到 gateway
+  baseURL: '',
   timeout: 10000
 })
 
