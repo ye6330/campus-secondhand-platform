@@ -1,31 +1,64 @@
 <script setup>
 import request from '../utils/request'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { StarFilled } from '@element-plus/icons-vue'
+import { StarFilled, Star } from '@element-plus/icons-vue'
 import { useUserStore } from '../store/user'
-import { onMounted, ref } from 'vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-// 首页统计卡片（后续接真实数据）
-const stats = ref([
-  { label: '在售商品', value: '—', icon: 'Goods' },
-  { label: '待确认订单', value: '—', icon: 'List' },
-  { label: '我的收藏', value: '—', icon: 'Star' },
-  { label: '消息通知', value: '—', icon: 'Bell' }
-])
-const unreadMessageCount = ref('—')
+const loading = ref(false)
+const products = ref([])
+const keyword = ref('')
+const avatarUploading = ref(false)
+const avatarPreviewVisible = ref(false)
+const avatarInput = ref(null)
 
-const loadProductsCount = async () => {
+const stats = ref({
+  onSale: '—',
+  pendingOrders: '—',
+  favorites: '—',
+  notifications: '—',
+  unreadMessages: '—'
+})
+
+const quickStats = computed(() => [
+  { label: '在售商品', value: stats.value.onSale, icon: 'Goods' },
+  { label: '待确认订单', value: stats.value.pendingOrders, icon: 'List' },
+  { label: '收藏夹', value: stats.value.favorites, icon: 'Star' },
+  { label: '未读私信', value: stats.value.unreadMessages, icon: 'ChatDotSquare' }
+])
+
+const sidebarItems = computed(() => [
+  { label: '商品广场', icon: 'Grid', action: () => router.push('/home'), active: true },
+  { label: '发布商品', icon: 'Plus', action: () => router.push('/products/publish') },
+  { label: '我的商品', icon: 'Goods', action: () => router.push('/my/products') },
+  { label: '我的订单', icon: 'List', action: () => router.push('/my/orders'), badge: stats.value.pendingOrders },
+  { label: '我的收藏', icon: 'Star', action: () => router.push('/my/favorites') },
+  { label: '我的私信', icon: 'ChatDotSquare', action: () => router.push('/my/messages'), badge: stats.value.unreadMessages },
+  { label: '我的通知', icon: 'Bell', action: () => router.push('/my/notifications'), badge: stats.value.notifications },
+  { label: '个人资料', icon: 'User', action: () => router.push('/profile') }
+])
+
+const loadProducts = async (kw) => {
+  loading.value = true
   try {
-    const res = await request.get('/api/products')
+    const params = kw ? { keyword: kw } : {}
+    const res = await request.get('/api/products', { params })
     if (res.code === 200) {
-      stats.value[0].value = res.data.length
+      products.value = res.data
+      stats.value.onSale = res.data.length
+      return
     }
+    throw new Error(res.message)
   } catch (e) {
-    stats.value[0].value = '—'
+    products.value = []
+    stats.value.onSale = '—'
+    ElMessage.error(e?.response?.data?.message || e?.message || '加载商品列表失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -33,10 +66,10 @@ const loadFavoritesCount = async () => {
   try {
     const res = await request.get('/api/favorites/my')
     if (res.code === 200) {
-      stats.value[2].value = res.data.length
+      stats.value.favorites = res.data.length
     }
   } catch (e) {
-    // ignore
+    stats.value.favorites = '—'
   }
 }
 
@@ -44,10 +77,10 @@ const loadPendingSellOrdersCount = async () => {
   try {
     const res = await request.get('/api/orders/sell', { params: { status: '待确认' } })
     if (res.code === 200) {
-      stats.value[1].value = res.data.length
+      stats.value.pendingOrders = res.data.length
     }
   } catch (e) {
-    stats.value[1].value = '—'
+    stats.value.pendingOrders = '—'
   }
 }
 
@@ -55,10 +88,10 @@ const loadNotificationsCount = async () => {
   try {
     const res = await request.get('/api/notifications/unread-count')
     if (res.code === 200) {
-      stats.value[3].value = res.data.count
+      stats.value.notifications = res.data.count
     }
   } catch (e) {
-    stats.value[3].value = '—'
+    stats.value.notifications = '—'
   }
 }
 
@@ -66,74 +99,90 @@ const loadUnreadMessagesCount = async () => {
   try {
     const res = await request.get('/api/messages/unread-count')
     if (res.code === 200) {
-      unreadMessageCount.value = res.data.count
+      stats.value.unreadMessages = res.data.count
       return
     }
     throw new Error(res.message)
   } catch (e) {
-    unreadMessageCount.value = '—'
+    stats.value.unreadMessages = '—'
   }
 }
 
-// 进入首页时从后端获取当前用户信息
 const loadCurrentUser = async () => {
   if (!userStore.token) {
     router.push('/login')
-    return
+    return false
   }
 
   try {
     await userStore.fetchCurrentUser()
     if (userStore.role === 'ADMIN') {
       router.push('/admin/home')
-      return
+      return false
     }
+    return true
   } catch (e) {
-    // token 失效，清空登录态，跳回登录页
     userStore.logout()
     ElMessage.error(e?.response?.data?.message || e?.message || '登录已失效，请重新登录')
     router.push('/login')
+    return false
   }
 }
 
-onMounted(() => {
-  loadCurrentUser()
-  loadProductsCount()
+onMounted(async () => {
+  const ok = await loadCurrentUser()
+  if (!ok) return
+  loadProducts()
   loadPendingSellOrdersCount()
   loadFavoritesCount()
   loadNotificationsCount()
   loadUnreadMessagesCount()
 })
 
-const goToPublish = () => {
-  router.push('/products/publish')
+const handleSearch = () => {
+  loadProducts(keyword.value.trim())
 }
 
-const goToProducts = () => {
-  router.push('/products')
+const clearSearch = () => {
+  keyword.value = ''
+  loadProducts()
 }
 
-const goToMyProducts = () => {
-  router.push('/my/products')
+const goToDetail = (id) => {
+  router.push(`/products/${id}`)
 }
 
-const goToMyFavorites = () => {
-  router.push('/my/favorites')
+const goToSeller = (e, sellerId) => {
+  e.stopPropagation()
+  router.push(`/seller/${sellerId}`)
 }
 
-const goToMyOrders = () => {
-  router.push('/my/orders')
+const toggleFavorite = async (e, product) => {
+  e.stopPropagation()
+  try {
+    if (product.favorited) {
+      const res = await request.delete(`/api/favorites/${product.id}`)
+      if (res.code === 200) {
+        product.favorited = false
+        product.favoriteCount--
+        if (stats.value.favorites !== '—') stats.value.favorites = Number(stats.value.favorites) - 1
+        return
+      }
+    } else {
+      const res = await request.post(`/api/favorites/${product.id}`)
+      if (res.code === 200) {
+        product.favorited = true
+        product.favoriteCount++
+        if (stats.value.favorites !== '—') stats.value.favorites = Number(stats.value.favorites) + 1
+        return
+      }
+    }
+    throw new Error('操作失败')
+  } catch (e2) {
+    ElMessage.error(e2?.response?.data?.message || e2?.message || '操作失败')
+  }
 }
 
-const goToMyNotifications = () => {
-  router.push('/my/notifications')
-}
-
-const goToMyMessages = () => {
-  router.push('/my/messages')
-}
-
-// 退出登录
 const handleLogout = () => {
   ElMessageBox.confirm('确定要退出登录吗？', '提示', {
     confirmButtonText: '确定',
@@ -145,10 +194,6 @@ const handleLogout = () => {
     router.push('/login')
   }).catch(() => {})
 }
-
-const avatarUploading = ref(false)
-const avatarPreviewVisible = ref(false)
-const avatarInput = ref(null)
 
 const handleAvatarCommand = (cmd) => {
   if (cmd === 'view') {
@@ -182,34 +227,48 @@ const handleAvatarFileChange = (e) => {
       return
     }
     throw new Error(res.message)
-  }).catch(e => {
-    ElMessage.error(e?.response?.data?.message || e?.message || '头像上传失败')
+  }).catch(e2 => {
+    ElMessage.error(e2?.response?.data?.message || e2?.message || '头像上传失败')
   }).finally(() => {
     avatarUploading.value = false
     e.target.value = ''
   })
 }
+
+const displayName = computed(() => userStore.nickname || userStore.username)
 </script>
 
 <template>
-  <div class="home-page">
-    <header class="home-header">
-      <div class="header-left">
-        <el-icon :size="28" class="header-logo"><School /></el-icon>
-        <span class="header-title">校园二手交易平台</span>
+  <div class="workspace-page">
+    <header class="topbar">
+      <div class="brand">
+        <el-icon :size="24" class="brand-icon"><School /></el-icon>
+        <div>
+          <div class="brand-title">校园二手交易平台</div>
+          <div class="brand-subtitle">闲置流转工作台</div>
+        </div>
       </div>
-      <div class="header-right">
+      <div class="topbar-actions">
+        <el-input
+          v-model="keyword"
+          class="header-search"
+          placeholder="搜索在售商品"
+          clearable
+          @keyup.enter="handleSearch"
+          @clear="clearSearch"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
         <el-dropdown trigger="click" @command="handleAvatarCommand">
-          <div class="avatar-wrapper">
-            <el-avatar
-              :size="36"
-              :src="userStore.avatar"
-              v-loading="avatarUploading"
-            >
-              {{ (userStore.nickname || userStore.username)[0] }}
+          <div class="account-trigger">
+            <el-avatar :size="38" :src="userStore.avatar" v-loading="avatarUploading">
+              {{ displayName?.[0] }}
             </el-avatar>
-            <div class="avatar-overlay">
-              <el-icon :size="16"><Camera /></el-icon>
+            <div class="account-meta">
+              <span class="account-name">{{ displayName }}</span>
+              <span class="account-role">普通用户</span>
             </div>
           </div>
           <template #dropdown>
@@ -221,6 +280,10 @@ const handleAvatarFileChange = (e) => {
             </el-dropdown-menu>
           </template>
         </el-dropdown>
+        <el-button text @click="handleLogout">
+          <el-icon><SwitchButton /></el-icon>
+          退出
+        </el-button>
         <input
           ref="avatarInput"
           type="file"
@@ -228,379 +291,502 @@ const handleAvatarFileChange = (e) => {
           style="display:none"
           @change="handleAvatarFileChange"
         />
-        <el-dialog v-model="avatarPreviewVisible" title="头像预览" width="360px" :close-on-click-modal="true">
-          <div style="text-align:center;padding:20px 0">
-            <img v-if="userStore.avatar" :src="userStore.avatar" style="max-width:100%;border-radius:12px" />
-            <el-empty v-else description="还没有设置头像" />
-          </div>
-        </el-dialog>
-        <span class="welcome-text">
-          {{ userStore.nickname || userStore.username }}
-          <el-tag size="small" type="info" style="margin-left:6px">用户</el-tag>
-        </span>
-        <el-button text @click="handleLogout">
-          <el-icon><SwitchButton /></el-icon>
-          退出
-        </el-button>
       </div>
     </header>
 
-    <main class="home-main">
-      <div class="welcome-card">
-        <div>
-          <span class="welcome-badge">校园闲置交易</span>
-          <h2>欢迎回来</h2>
-          <p>看看今天有哪些值得带走的好东西，或者把你的闲置挂上来。</p>
+    <div class="workspace-body">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="section-label">快捷菜单</div>
+          <button
+            v-for="item in sidebarItems"
+            :key="item.label"
+            class="nav-item"
+            :class="{ active: item.active }"
+            @click="item.action()"
+          >
+            <span class="nav-left">
+              <el-icon><component :is="item.icon" /></el-icon>
+              <span>{{ item.label }}</span>
+            </span>
+            <el-badge
+              v-if="item.badge !== undefined && item.badge !== '—' && Number(item.badge) > 0"
+              :value="item.badge"
+            />
+          </button>
         </div>
-      </div>
 
-      <div class="stats-grid">
-        <div
-          v-for="stat in stats"
-          :key="stat.label"
-          class="stat-card"
-          :class="{ highlight: (stat.label === '待确认订单' || stat.label === '消息通知') && stat.value !== '—' && Number(stat.value) > 0 }"
-          @click="stat.label === '消息通知' ? goToMyNotifications() : stat.label === '待确认订单' ? goToMyOrders() : null"
-        >
-          <div class="stat-icon-wrap">
-            <el-icon :size="24" class="stat-icon"><component :is="stat.icon" /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ stat.value }}</span>
-            <span class="stat-label">{{ stat.label }}</span>
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">今日概览</div>
+          <div class="mini-stats">
+            <div v-for="stat in quickStats" :key="stat.label" class="mini-stat">
+              <el-icon class="mini-stat-icon"><component :is="stat.icon" /></el-icon>
+              <div>
+                <div class="mini-stat-value">{{ stat.value }}</div>
+                <div class="mini-stat-label">{{ stat.label }}</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </aside>
 
-      <div class="quick-actions">
-        <button class="action-card primary" @click="goToPublish">
-          <div class="action-top">
-            <el-icon><Plus /></el-icon>
-            <span>发布商品</span>
+      <main class="content-area">
+        <section class="hero-panel">
+          <div>
+            <span class="hero-badge">商品广场</span>
+            <h1>在售商品</h1>
+            <p>默认展示已上架商品，支持搜索、收藏和快速进入详情。</p>
           </div>
-          <p>快速挂出你的闲置</p>
-        </button>
-        <button class="action-card" @click="goToMyProducts">
-          <div class="action-top">
-            <el-icon><Goods /></el-icon>
-            <span>我的商品</span>
+          <div class="hero-actions">
+            <el-button @click="clearSearch">查看全部</el-button>
+            <el-button type="primary" @click="router.push('/products/publish')">发布商品</el-button>
           </div>
-          <p>查看发布和状态</p>
-        </button>
-        <button class="action-card" @click="goToProducts">
-          <div class="action-top">
-            <el-icon><Collection /></el-icon>
-            <span>购买商品</span>
+        </section>
+
+        <section class="product-section">
+          <div class="section-header">
+            <div>
+              <h2>最新在售</h2>
+              <p>{{ products.length ? `当前展示 ${products.length} 件商品` : '暂无可展示商品' }}</p>
+            </div>
+            <div class="section-actions">
+              <el-button text @click="router.push('/products')">进入完整商品列表</el-button>
+            </div>
           </div>
-          <p>逛逛最新上架内容</p>
-        </button>
-        <button class="action-card" @click="goToMyOrders">
-          <div class="action-top">
-            <el-icon><List /></el-icon>
-            <span>我的订单</span>
-            <el-badge v-if="stats[1].value !== '—' && Number(stats[1].value) > 0" :value="stats[1].value" class="order-badge" />
+
+          <el-empty v-if="!loading && products.length === 0" description="暂无商品" />
+
+          <div v-else class="product-grid" v-loading="loading">
+            <article v-for="product in products" :key="product.id" class="product-card" @click="goToDetail(product.id)">
+              <img :src="product.coverImage" alt="商品封面" class="product-cover" />
+              <div class="product-body">
+                <div class="product-price-row">
+                  <span class="product-price">￥{{ product.price }}</span>
+                  <span class="product-time">{{ product.createdAt }}</span>
+                </div>
+                <h3>{{ product.title }}</h3>
+                <p>{{ product.description }}</p>
+                <div class="product-footer">
+                  <button class="seller-link" @click="goToSeller($event, product.sellerId)">
+                    {{ product.sellerName }}
+                  </button>
+                  <div class="product-meta" @click.stop>
+                    <span>浏览 {{ product.viewCount || 0 }}</span>
+                    <span class="favorite-chip">
+                      <el-icon
+                        :color="product.favorited ? '#f59e0b' : '#9ca3af'"
+                        :size="18"
+                        @click="toggleFavorite($event, product)"
+                      >
+                        <StarFilled v-if="product.favorited" />
+                        <Star v-else />
+                      </el-icon>
+                      {{ product.favoriteCount || 0 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
           </div>
-          <p>跟进待确认交易</p>
-        </button>
-        <button class="action-card" @click="goToMyFavorites">
-          <div class="action-top">
-            <el-icon><StarFilled /></el-icon>
-            <span>我的收藏</span>
-          </div>
-          <p>回看感兴趣商品</p>
-        </button>
-        <button class="action-card" @click="goToMyMessages">
-          <div class="action-top">
-            <el-icon><ChatDotSquare /></el-icon>
-            <span>我的私信</span>
-            <el-badge v-if="unreadMessageCount !== '—' && Number(unreadMessageCount) > 0" :value="unreadMessageCount" class="order-badge" />
-          </div>
-          <p :class="{ 'danger-text': unreadMessageCount !== '—' && Number(unreadMessageCount) > 0 }">
-            {{ unreadMessageCount !== '—' && Number(unreadMessageCount) > 0 ? '有未读私信，点击查看' : '查看买家卖家消息' }}
-          </p>
-        </button>
-        <button class="action-card" @click="goToMyNotifications">
-          <div class="action-top">
-            <el-icon><Bell /></el-icon>
-            <span>我的通知</span>
-            <el-badge v-if="stats[3].value !== '—' && Number(stats[3].value) > 0" :value="stats[3].value" class="order-badge" />
-          </div>
-          <p>查看平台最新消息</p>
-        </button>
+        </section>
+      </main>
+    </div>
+
+    <el-dialog v-model="avatarPreviewVisible" title="头像预览" width="360px" :close-on-click-modal="true">
+      <div class="avatar-preview">
+        <img v-if="userStore.avatar" :src="userStore.avatar" class="avatar-preview-image" />
+        <el-empty v-else description="还没有设置头像" />
       </div>
-    </main>
+    </el-dialog>
   </div>
 </template>
 
 <style scoped>
-.home-page {
+.workspace-page {
   min-height: 100%;
-  background: #f0f2f5;
+  background: #eef2f7;
+  color: #111827;
 }
 
-.home-header {
+.topbar {
+  height: 72px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
-  height: 64px;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
 }
 
-.header-left {
+.brand {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.header-logo {
-  color: #667eea;
+.brand-icon {
+  color: #4f46e5;
 }
 
-.header-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.welcome-text {
-  font-size: 14px;
-  color: #606266;
-}
-
-.avatar-wrapper {
-  position: relative;
-  cursor: pointer;
-  line-height: 0;
-}
-
-.avatar-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s;
-  color: #fff;
-}
-
-.avatar-wrapper:hover .avatar-overlay {
-  opacity: 1;
-}
-
-.home-main {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 24px 20px 36px;
-}
-
-.welcome-card {
-  background: linear-gradient(135deg, #5b6ee1 0%, #6a63d7 45%, #7a52b3 100%);
-  border-radius: 24px;
-  padding: 24px 28px;
-  color: #fff;
-  margin-bottom: 18px;
-  display: flex;
-  align-items: stretch;
-  gap: 20px;
-  animation: slideDown 0.5s ease-out;
-  box-shadow: 0 18px 40px rgba(95, 103, 214, 0.22);
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.welcome-card h2 {
-  font-size: 28px;
-  line-height: 1.15;
-  margin: 8px 0 10px;
-}
-
-.welcome-card p {
-  font-size: 14px;
-  opacity: 0.88;
-  max-width: 620px;
-  margin: 0;
-}
-
-.welcome-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  font-size: 11px;
-  letter-spacing: 0.8px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.stat-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(103, 116, 142, 0.08);
-  border-radius: 20px;
-  padding: 22px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 10px 30px rgba(31, 41, 55, 0.06);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.stat-card {
-  cursor: default;
-}
-
-.stat-card.highlight {
-  border: 1px solid rgba(96, 96, 255, 0.18);
-  box-shadow: 0 16px 30px rgba(97, 97, 214, 0.14);
-  background: linear-gradient(180deg, #ffffff, #f8f8ff);
-}
-
-.stat-icon-wrap {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(91, 110, 225, 0.14), rgba(122, 82, 179, 0.14));
-}
-
-.stat-icon {
-  color: #6170e1;
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-value {
-  font-size: 28px;
+.brand-title {
+  font-size: 20px;
   font-weight: 700;
-  color: #1f2937;
 }
 
-.stat-label {
-  font-size: 14px;
-  color: #8a94a6;
-  margin-top: 4px;
+.brand-subtitle {
+  font-size: 12px;
+  color: #6b7280;
 }
 
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.topbar-actions {
+  display: flex;
+  align-items: center;
   gap: 14px;
 }
 
-.action-card {
-  border: 1px solid rgba(103, 116, 142, 0.12);
-  background: #fff;
-  border-radius: 18px;
-  padding: 18px 18px 16px;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-  box-shadow: 0 10px 24px rgba(31, 41, 55, 0.05);
+.header-search {
+  width: 300px;
 }
 
-.action-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(91, 110, 225, 0.24);
-  box-shadow: 0 16px 30px rgba(91, 110, 225, 0.1);
-}
-
-.action-card.primary {
-  background: linear-gradient(135deg, #4294f0, #4a7eea);
-  color: #fff;
-  border: none;
-}
-
-.action-top {
+.account-trigger {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.account-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.account-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.account-role {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.workspace-body {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 24px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sidebar-section,
+.sidebar-card,
+.hero-panel,
+.product-section,
+.product-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.sidebar-section,
+.sidebar-card {
+  padding: 18px;
+}
+
+.section-label,
+.sidebar-card-title {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.nav-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-item + .nav-item {
+  margin-top: 6px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mini-stats {
+  display: grid;
+  gap: 12px;
+}
+
+.mini-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.mini-stat-icon {
+  color: #4f46e5;
+}
+
+.mini-stat-value {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.action-card p {
-  margin: 12px 0 0;
+.mini-stat-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.content-area {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hero-panel {
+  padding: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 55%, #7c3aed 100%);
+  color: #ffffff;
+  border: 0;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.hero-panel h1 {
+  margin: 0 0 10px;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.hero-panel p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.product-section {
+  padding: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+
+.section-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+}
+
+.product-cover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #e5e7eb;
+  display: block;
+}
+
+.product-body {
+  padding: 16px;
+}
+
+.product-price-row,
+.product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-price {
+  font-size: 24px;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.product-time,
+.product-meta,
+.product-body p {
+  color: #6b7280;
+}
+
+.product-time {
+  font-size: 12px;
+}
+
+.product-body h3 {
+  margin: 14px 0 8px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.product-body p {
+  margin: 0 0 16px;
+  min-height: 40px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.seller-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 13px;
-  color: #8a94a6;
 }
 
-.danger-text {
-  color: #f56c6c !important;
-  font-weight: 600;
+.favorite-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.action-card.primary p {
-  color: rgba(255, 255, 255, 0.84);
+.avatar-preview {
+  text-align: center;
+  padding: 20px 0;
 }
 
-.order-badge {
-  margin-left: 8px;
+.avatar-preview-image {
+  max-width: 100%;
+  border-radius: 12px;
 }
 
-@media (max-width: 768px) {
-  .home-main {
-    padding-top: 20px;
+@media (max-width: 1180px) {
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .welcome-card {
-    padding: 20px 18px;
-    flex-direction: column;
-  }
-
-  .welcome-card h2 {
-    font-size: 24px;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .quick-actions {
+@media (max-width: 980px) {
+  .workspace-body {
     grid-template-columns: 1fr;
   }
 
-  .home-header {
-    padding: 0 16px;
+  .sidebar {
+    order: 2;
+  }
+
+  .content-area {
+    order: 1;
   }
 }
 
+@media (max-width: 760px) {
+  .topbar {
+    height: auto;
+    padding: 16px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
 
+  .topbar-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .header-search {
+    width: 100%;
+  }
+
+  .hero-panel,
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
