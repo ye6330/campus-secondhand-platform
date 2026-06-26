@@ -215,6 +215,51 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public void markTradingInternal(Long id) {
+        productCache.evict(id);
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new RuntimeException("商品不存在");
+        }
+        if (!"已上架".equals(product.getStatus())) {
+            throw new RuntimeException("当前商品不可进入交易中");
+        }
+        product.setStatus("交易中");
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+    }
+
+    @Override
+    public void restoreOnShelfInternal(Long id) {
+        productCache.evict(id);
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new RuntimeException("商品不存在");
+        }
+        if (!"交易中".equals(product.getStatus())) {
+            throw new RuntimeException("当前商品不可恢复上架");
+        }
+        product.setStatus("已上架");
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+    }
+
+    @Override
+    public void markSoldInternal(Long id) {
+        productCache.evict(id);
+        Product product = productMapper.selectById(id);
+        if (product == null) {
+            throw new RuntimeException("商品不存在");
+        }
+        if (!"交易中".equals(product.getStatus())) {
+            throw new RuntimeException("当前商品不可标记为已售出");
+        }
+        product.setStatus("已售出");
+        product.setUpdatedAt(LocalDateTime.now());
+        productMapper.updateById(product);
+    }
+
+    @Override
     public List<ProductVO> listPending() {
         List<Product> products = productMapper.selectList(
             new LambdaQueryWrapper<Product>()

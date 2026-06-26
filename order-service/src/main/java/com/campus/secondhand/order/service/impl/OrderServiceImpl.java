@@ -61,12 +61,11 @@ public class OrderServiceImpl implements OrderService {
         }
         Long pendingCount = orderMapper.selectCount(
             new LambdaQueryWrapper<Order>()
-                .eq(Order::getBuyerId, buyerId)
                 .eq(Order::getProductId, request.getProductId())
-                .eq(Order::getStatus, "待确认")
+                .in(Order::getStatus, "待确认", "已确认")
         );
         if (pendingCount != null && pendingCount > 0) {
-            throw new RuntimeException("你已提交过该商品的购买意向");
+            throw new RuntimeException("该商品正在交易中，暂时无法购买");
         }
         Map<String, Object> buyerContact = getContact(buyerId);
         Map<String, Object> sellerContact = getContact(sellerId);
@@ -87,6 +86,13 @@ public class OrderServiceImpl implements OrderService {
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
         orderMapper.insert(order);
+        Map<String, Object> tradingResponse = productClient.markTrading(order.getProductId());
+        if (!isSuccess(tradingResponse)) {
+            orderMapper.deleteById(order.getId());
+            throw new RuntimeException(tradingResponse == null || tradingResponse.get("message") == null
+                ? "商品状态更新失败"
+                : String.valueOf(tradingResponse.get("message")));
+        }
         notifyUser(
             sellerId,
             "新的购买意向",
@@ -179,6 +185,12 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(request == null || request.getNote() == null ? order.getNote() : request.getNote().trim());
         order.setUpdatedAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        Map<String, Object> response = productClient.restoreOnShelf(order.getProductId());
+        if (!isSuccess(response)) {
+            throw new RuntimeException(response == null || response.get("message") == null
+                ? "商品状态恢复失败"
+                : String.valueOf(response.get("message")));
+        }
         notifyUser(
             order.getBuyerId(),
             "购买意向处理结果",
@@ -200,6 +212,12 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus("已取消");
         order.setUpdatedAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        Map<String, Object> response = productClient.restoreOnShelf(order.getProductId());
+        if (!isSuccess(response)) {
+            throw new RuntimeException(response == null || response.get("message") == null
+                ? "商品状态恢复失败"
+                : String.valueOf(response.get("message")));
+        }
         notifyUser(
             order.getSellerId(),
             "购买意向已取消",

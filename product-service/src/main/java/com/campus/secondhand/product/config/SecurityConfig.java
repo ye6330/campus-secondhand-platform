@@ -39,6 +39,7 @@ public class SecurityConfig {
                 "/v3/api-docs",
                 "/webjars/**"
             ).permitAll()
+            .antMatchers("/api/products/*/internal/trading", "/api/products/*/internal/on-shelf", "/api/products/*/internal/sold").permitAll()
             .antMatchers(org.springframework.http.HttpMethod.GET, "/api/products/**", "/api/comments/**").permitAll()
             .anyRequest().authenticated()
             .and()

@@ -29,6 +29,12 @@ public interface ProductService {
 
     void markSold(Long id);
 
+    void markTradingInternal(Long id);
+
+    void restoreOnShelfInternal(Long id);
+
+    void markSoldInternal(Long id);
+
     List<ProductVO> listPending();
 
     void review(Long id, String action);

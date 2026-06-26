@@ -109,6 +109,27 @@ public class ProductController {
         return ApiResponse.success(null);
     }
 
+    @ApiOperation("内部调用：商品进入交易中")
+    @PutMapping("/{id}/internal/trading")
+    public ApiResponse<Void> markTradingInternal(@PathVariable Long id) {
+        productService.markTradingInternal(id);
+        return ApiResponse.success(null);
+    }
+
+    @ApiOperation("内部调用：商品恢复上架")
+    @PutMapping("/{id}/internal/on-shelf")
+    public ApiResponse<Void> restoreOnShelfInternal(@PathVariable Long id) {
+        productService.restoreOnShelfInternal(id);
+        return ApiResponse.success(null);
+    }
+
+    @ApiOperation("内部调用：商品标记已售出")
+    @PutMapping("/{id}/internal/sold")
+    public ApiResponse<Void> markSoldInternal(@PathVariable Long id) {
+        productService.markSoldInternal(id);
+        return ApiResponse.success(null);
+    }
+
     @ApiOperation("待审核商品列表（仅admin）")
     @GetMapping("/pending")
     public ApiResponse<List<ProductVO>> listPending() {
