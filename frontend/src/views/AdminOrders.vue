@@ -76,6 +76,12 @@ const statusType = (status) => {
   if (status === '已取消') return 'info'
   return 'danger'
 }
+
+const statusLabel = (status) => {
+  if (status === '待确认') return '待卖家确认'
+  if (status === '已确认') return '已成交'
+  return status
+}
 </script>
 
 <template>
@@ -89,8 +95,8 @@ const statusType = (status) => {
     <div class="toolbar">
       <el-tabs v-model="statusTab" class="tabs">
         <el-tab-pane :label="`全部 (${counts.all})`" name="all" />
-        <el-tab-pane :label="`待确认 (${counts['待确认']})`" name="待确认" />
-        <el-tab-pane :label="`已确认 (${counts['已确认']})`" name="已确认" />
+        <el-tab-pane :label="`待卖家确认 (${counts['待确认']})`" name="待确认" />
+        <el-tab-pane :label="`已成交 (${counts['已确认']})`" name="已确认" />
         <el-tab-pane :label="`已拒绝 (${counts['已拒绝']})`" name="已拒绝" />
         <el-tab-pane :label="`已取消 (${counts['已取消']})`" name="已取消" />
       </el-tabs>
@@ -105,7 +111,7 @@ const statusType = (status) => {
           <div class="info">
             <div class="title-row">
               <strong>{{ item.productTitle }}</strong>
-              <el-tag size="small" :type="statusType(item.status)">{{ item.status }}</el-tag>
+              <el-tag size="small" :type="statusType(item.status)">{{ statusLabel(item.status) }}</el-tag>
             </div>
             <p>订单号：{{ item.orderNo }}</p>
             <p>价格：￥{{ item.productPrice }}</p>

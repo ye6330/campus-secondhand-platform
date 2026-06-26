@@ -188,6 +188,12 @@ const statusType = (status) => {
   return 'danger'
 }
 
+const statusLabel = (status) => {
+  if (status === '待确认') return '待卖家确认'
+  if (status === '已确认') return '已成交'
+  return status
+}
+
 const contactText = (item) => {
   if (orderType.value === 'buy') {
     return `卖家：${item.sellerName}（${item.sellerPhone || '未填写'}）`
@@ -221,8 +227,8 @@ const contactText = (item) => {
       </el-radio-group>
       <el-tabs v-model="statusTab" class="tabs">
         <el-tab-pane :label="`全部 (${activeCounts.all})`" name="all" />
-        <el-tab-pane :label="`待确认 (${activeCounts['待确认']})`" name="待确认" />
-        <el-tab-pane :label="`已确认 (${activeCounts['已确认']})`" name="已确认" />
+        <el-tab-pane :label="`待卖家确认 (${activeCounts['待确认']})`" name="待确认" />
+        <el-tab-pane :label="`已成交 (${activeCounts['已确认']})`" name="已确认" />
         <el-tab-pane :label="`已拒绝 (${activeCounts['已拒绝']})`" name="已拒绝" />
         <el-tab-pane :label="`已取消 (${activeCounts['已取消']})`" name="已取消" />
       </el-tabs>
@@ -237,7 +243,7 @@ const contactText = (item) => {
           <div class="info">
             <div class="title-row">
               <strong>{{ item.productTitle }}</strong>
-              <el-tag size="small" :type="statusType(item.status)">{{ item.status }}</el-tag>
+              <el-tag size="small" :type="statusType(item.status)">{{ statusLabel(item.status) }}</el-tag>
             </div>
             <p>订单号：{{ item.orderNo }}</p>
             <p>价格：￥{{ item.productPrice }}</p>

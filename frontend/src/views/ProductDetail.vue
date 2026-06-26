@@ -305,11 +305,12 @@ const submitOrder = async () => {
         <div class="detail-info">
           <div class="detail-title-row">
             <h1>{{ product.title }}</h1>
-            <el-tag v-if="product.status === '待审核'" type="warning">待审核</el-tag>
-            <el-tag v-else-if="product.status === '已上架'" type="success">已上架</el-tag>
-            <el-tag v-else-if="product.status === '已下架'" type="info">已下架</el-tag>
-            <el-tag v-else-if="product.status === '已售出'" type="success">已售出</el-tag>
-            <el-tag v-else-if="product.status === '已拒绝'" type="danger">已拒绝</el-tag>
+             <el-tag v-if="product.status === '待审核'" type="warning">待审核</el-tag>
+             <el-tag v-else-if="product.status === '已上架'" type="success">已上架</el-tag>
+             <el-tag v-else-if="product.status === '交易中'" type="warning">交易中</el-tag>
+             <el-tag v-else-if="product.status === '已下架'" type="info">已下架</el-tag>
+             <el-tag v-else-if="product.status === '已售出'" type="success">已售出</el-tag>
+             <el-tag v-else-if="product.status === '已拒绝'" type="danger">已拒绝</el-tag>
           </div>
           <div class="detail-price-row">
             <div class="detail-price">￥{{ product.price }}</div>
@@ -322,6 +323,8 @@ const submitOrder = async () => {
                 <span>{{ product.favoriteCount || 0 }}</span>
               </div>
               <el-button v-if="!isSeller && product.status === '已上架'" type="primary" plain @click="orderVisible = true">我想要</el-button>
+              <el-tag v-else-if="!isSeller && product.status === '交易中'" type="warning" effect="dark">该商品正在交易中</el-tag>
+              <el-tag v-else-if="!isSeller && product.status === '已售出'" type="info" effect="dark">该商品已售出</el-tag>
               <el-button v-if="!isSeller" plain @click="goToChatSeller">联系卖家</el-button>
               <el-button v-if="!isSeller" text type="danger" @click="reportVisible = true">举报商品</el-button>
             </div>
