@@ -96,16 +96,25 @@ const toggleFavorite = async (e, product) => {
       <el-button @click="goBack">&lt; 返回</el-button>
       <div>
         <h2>{{ sellerName }}的主页</h2>
-        <p>查看该卖家当前在售的商品</p>
+        <p>查看该卖家的在售、交易中和已售出商品</p>
       </div>
       <el-button type="primary" plain @click="goToChat">联系卖家</el-button>
     </div>
 
-    <el-empty v-if="!loading && products.length === 0" description="该卖家暂时没有在售商品" />
+    <el-empty v-if="!loading && products.length === 0" description="该卖家暂时没有可展示商品" />
 
     <div v-else class="product-grid">
-      <div v-for="product in products" :key="product.id" class="product-card" @click="goToDetail(product.id)">
-        <img :src="product.coverImage" alt="商品封面" class="product-cover" />
+      <div v-for="product in products" :key="product.id" class="product-card" :class="[`status-${product.status}`]" @click="goToDetail(product.id)">
+        <div class="cover-wrap">
+          <img :src="product.coverImage" alt="商品封面" class="product-cover" />
+          <div v-if="product.status === '已售出'" class="sold-stamp">已售出</div>
+          <div v-else-if="product.status === '交易中'" class="trading-chip">交易中</div>
+        </div>
+        <div class="card-head">
+          <el-tag v-if="product.status === '已上架'" size="small" type="success">在售</el-tag>
+          <el-tag v-else-if="product.status === '交易中'" size="small" type="warning">交易中</el-tag>
+          <el-tag v-else-if="product.status === '已售出'" size="small" type="danger">已售出</el-tag>
+        </div>
         <div class="price-row">
           <span class="price">￥{{ product.price }}</span>
           <span class="time">{{ product.createdAt }}</span>
@@ -188,14 +197,77 @@ const toggleFavorite = async (e, product) => {
   transform: translateY(-2px);
 }
 
+.product-card.status-已售出 {
+  background: #fff;
+  border: 1px solid #f3d0d0;
+}
+
+.product-card.status-交易中 {
+  background: #fff;
+  border: 1px solid #f3dfb2;
+}
+
+.cover-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
 .product-cover {
   width: 100%;
   height: 220px;
   object-fit: cover;
   border-radius: 12px;
   display: block;
-  margin-bottom: 16px;
   background: #eef2ff;
+}
+
+.product-card.status-已售出 .product-cover {
+  filter: grayscale(0.75) brightness(0.92);
+}
+
+.sold-stamp {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  right: 14px;
+  top: 14px;
+  width: 88px;
+  height: 88px;
+  border: 4px solid rgba(220, 38, 38, 0.9);
+  border-radius: 999px;
+  color: rgba(220, 38, 38, 0.92);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: rgba(255, 255, 255, 0.72);
+  transform: rotate(-18deg);
+  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.18);
+  pointer-events: none;
+}
+
+.trading-chip {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+  background: rgba(255, 251, 235, 0.95);
+  border: 1px solid #fcd34d;
+  box-shadow: 0 6px 14px rgba(180, 83, 9, 0.12);
+  pointer-events: none;
+}
+
+.card-head {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
 }
 
 .price-row,

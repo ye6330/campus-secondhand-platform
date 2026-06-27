@@ -83,7 +83,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductVO> listBySeller(Long sellerId) {
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
             .eq(Product::getSellerId, sellerId)
-            .eq(Product::getStatus, "已上架")
+            .in(Product::getStatus, "已上架", "交易中", "已售出")
             .orderByDesc(Product::getId);
         return toVOList(productMapper.selectList(wrapper));
     }
