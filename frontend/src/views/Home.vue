@@ -236,6 +236,8 @@ const handleAvatarFileChange = (e) => {
 }
 
 const displayName = computed(() => userStore.nickname || userStore.username)
+const roleLabel = computed(() => userStore.role === 'ADMIN' ? '管理员' : '普通用户')
+const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info')
 </script>
 
 <template>
@@ -263,12 +265,19 @@ const displayName = computed(() => userStore.nickname || userStore.username)
         </el-input>
         <el-dropdown trigger="click" @command="handleAvatarCommand">
           <div class="account-trigger">
-            <el-avatar :size="38" :src="userStore.avatar" v-loading="avatarUploading">
-              {{ displayName?.[0] }}
-            </el-avatar>
+            <div class="avatar-wrapper">
+              <el-avatar :size="38" :src="userStore.avatar" v-loading="avatarUploading">
+                {{ displayName?.[0] }}
+              </el-avatar>
+              <div class="avatar-overlay">
+                <el-icon :size="16"><Camera /></el-icon>
+              </div>
+            </div>
             <div class="account-meta">
               <span class="account-name">{{ displayName }}</span>
-              <span class="account-role">普通用户</span>
+              <span class="account-role">
+                <el-tag size="small" :type="roleTagType">{{ roleLabel }}</el-tag>
+              </span>
             </div>
           </div>
           <template #dropdown>
@@ -458,10 +467,35 @@ const displayName = computed(() => userStore.nickname || userStore.username)
   cursor: pointer;
 }
 
+.avatar-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.45);
+  color: #fff;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.account-trigger:hover .avatar-overlay {
+  opacity: 1;
+}
+
 .account-meta {
   display: flex;
-  flex-direction: column;
-  line-height: 1.2;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
 }
 
 .account-name {
@@ -470,8 +504,8 @@ const displayName = computed(() => userStore.nickname || userStore.username)
 }
 
 .account-role {
-  font-size: 12px;
-  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
 }
 
 .workspace-body {
