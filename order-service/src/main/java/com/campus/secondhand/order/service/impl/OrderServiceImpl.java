@@ -3,6 +3,7 @@ package com.campus.secondhand.order.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.campus.secondhand.common.core.constants.MQConstants;
 import com.campus.secondhand.common.core.dto.NotificationMessage;
+import com.campus.secondhand.common.core.log.OperationLog;
 import com.campus.secondhand.common.security.context.UserContext;
 import com.campus.secondhand.order.client.ProductClient;
 import com.campus.secondhand.order.client.UserClient;
@@ -120,6 +121,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @OperationLog("卖家确认订单")
     public void confirm(Long id, HandleOrderRequest request) {
         Order order = getOrder(id);
         Long userId = UserContext.getUserId();
@@ -172,6 +174,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @OperationLog("卖家拒绝订单")
     public void reject(Long id, HandleOrderRequest request) {
         Order order = getOrder(id);
         Long userId = UserContext.getUserId();
@@ -200,6 +203,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @OperationLog("买家取消订单")
     public void cancel(Long id) {
         Order order = getOrder(id);
         Long userId = UserContext.getUserId();

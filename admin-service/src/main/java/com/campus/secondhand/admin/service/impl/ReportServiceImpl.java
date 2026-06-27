@@ -10,6 +10,7 @@ import com.campus.secondhand.admin.mapper.ProductMapper;
 import com.campus.secondhand.admin.mapper.ReportMapper;
 import com.campus.secondhand.admin.service.ReportService;
 import com.campus.secondhand.admin.vo.ReportVO;
+import com.campus.secondhand.common.core.log.OperationLog;
 import com.campus.secondhand.common.security.context.UserContext;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -84,6 +85,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    @OperationLog("管理员处理举报")
     public void handle(Long id, String action, HandleReportRequest request) {
         String role = UserContext.getRole();
         if (!"ADMIN".equals(role)) {

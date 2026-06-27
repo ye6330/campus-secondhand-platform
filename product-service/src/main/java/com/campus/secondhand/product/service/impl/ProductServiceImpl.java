@@ -1,6 +1,7 @@
 package com.campus.secondhand.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.campus.secondhand.common.core.log.OperationLog;
 import com.campus.secondhand.common.security.context.UserContext;
 import com.campus.secondhand.product.dto.CreateProductRequest;
 import com.campus.secondhand.product.dto.UpdateProductRequest;
@@ -161,6 +162,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @OperationLog("卖家下架商品")
     public void offShelf(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -179,6 +181,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @OperationLog("卖家重新上架商品")
     public void relist(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -270,6 +273,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @OperationLog("管理员审核商品")
     public void review(Long id, String action) {
         productCache.evict(id);
         String role = UserContext.getRole();
