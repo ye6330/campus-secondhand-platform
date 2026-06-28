@@ -9,7 +9,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableDiscoveryClient
 @EnableFeignClients
 @SpringBootApplication(scanBasePackages = {"com.campus.secondhand.admin", "com.campus.secondhand.common"})
-@MapperScan("com.campus.secondhand.admin.mapper")
+@MapperScan({"com.campus.secondhand.admin.mapper", "com.campus.secondhand.common.web.mapper"})
 public class AdminServiceApplication {
 
     public static void main(String[] args) {

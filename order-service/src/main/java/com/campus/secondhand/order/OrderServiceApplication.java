@@ -7,7 +7,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableDiscoveryClient
-@MapperScan("com.campus.secondhand.order.mapper")
+@MapperScan({"com.campus.secondhand.order.mapper", "com.campus.secondhand.common.web.mapper"})
 @EnableFeignClients
 @SpringBootApplication(scanBasePackages = {"com.campus.secondhand.order", "com.campus.secondhand.common"})
 public class OrderServiceApplication {
