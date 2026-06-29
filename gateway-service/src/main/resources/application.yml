@@ -40,7 +40,7 @@ spring:
         - id: admin-service
           uri: lb://campus-admin-service
           predicates:
-            - Path=/api/reports/**
+            - Path=/api/reports/**,/api/operation-logs/**
         - id: product-service
           uri: lb://campus-product-service
           predicates:
