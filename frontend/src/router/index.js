@@ -118,6 +118,12 @@ const routes = [
     name: 'AdminOrders',
     meta: { requiresAuth: true },
     component: () => import('../views/AdminOrders.vue')
+  },
+  {
+    path: '/admin/operation-logs',
+    name: 'AdminOperationLogs',
+    meta: { requiresAuth: true },
+    component: () => import('../views/AdminOperationLogs.vue')
   }
 ]
 

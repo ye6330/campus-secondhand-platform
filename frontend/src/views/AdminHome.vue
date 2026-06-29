@@ -102,6 +102,7 @@ onMounted(async () => {
 const goToReview = () => router.push('/admin/review')
 const goToReports = () => router.push('/admin/reports')
 const goToOrders = () => router.push('/admin/orders')
+const goToOperationLogs = () => router.push('/admin/operation-logs')
 const goToProducts = () => router.push('/products')
 
 const handleLogout = () => {
@@ -222,6 +223,10 @@ const handleLogout = () => {
         <el-button type="primary" size="large" class="action-btn" @click="goToOrders">
           <el-icon><Tickets /></el-icon>
           订单管理
+        </el-button>
+        <el-button size="large" class="action-btn" @click="goToOperationLogs">
+          <el-icon><Document /></el-icon>
+          操作日志
         </el-button>
         <el-button size="large" class="action-btn" @click="goToProducts">
           <el-icon><Collection /></el-icon>
