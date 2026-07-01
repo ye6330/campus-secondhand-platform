@@ -292,7 +292,7 @@ const submitOrder = async () => {
       <div class="detail-header">
         <el-button @click="goBack">&lt; 返回列表</el-button>
         <div class="detail-actions" v-if="isSeller">
-          <el-button type="primary" @click="goToEdit">编辑</el-button>
+          <el-button v-if="!['交易中', '已售出'].includes(product.status)" type="primary" @click="goToEdit">编辑</el-button>
           <el-button v-if="product.status === '已上架'" type="warning" @click="handleOffShelf">下架</el-button>
           <el-button v-if="product.status === '已下架'" type="success" @click="handleRelist">上架</el-button>
           <el-button type="danger" @click="handleDelete">删除</el-button>

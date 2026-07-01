@@ -7,6 +7,7 @@ import request from '../utils/request'
 const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
+const currentStatus = ref('')
 const form = ref({
   title: '',
   description: '',
@@ -19,6 +20,12 @@ onMounted(async () => {
   try {
     const res = await request.get(`/api/products/${route.params.id}`)
     if (res.code === 200) {
+      currentStatus.value = res.data.status
+      if (['交易中', '已售出'].includes(res.data.status)) {
+        ElMessage.warning('交易中或已售出的商品不允许编辑')
+        router.push(`/products/${route.params.id}`)
+        return
+      }
       form.value = {
         title: res.data.title,
         description: res.data.description,

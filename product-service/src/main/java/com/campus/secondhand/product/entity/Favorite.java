@@ -12,6 +12,7 @@ public class Favorite {
     private Long id;
     private Long userId;
     private Long productId;
+    private Integer active;
     private LocalDateTime createdAt;
 
     public Long getId() { return id; }
@@ -20,6 +21,8 @@ public class Favorite {
     public void setUserId(Long userId) { this.userId = userId; }
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }
+    public Integer getActive() { return active; }
+    public void setActive(Integer active) { this.active = active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

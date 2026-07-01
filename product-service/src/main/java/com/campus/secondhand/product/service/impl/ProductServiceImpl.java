@@ -5,6 +5,7 @@ import com.campus.secondhand.common.core.log.OperationLog;
 import com.campus.secondhand.common.security.context.UserContext;
 import com.campus.secondhand.product.dto.CreateProductRequest;
 import com.campus.secondhand.product.dto.UpdateProductRequest;
+import com.campus.secondhand.product.entity.Favorite;
 import com.campus.secondhand.product.entity.Product;
 import com.campus.secondhand.product.mapper.FavoriteMapper;
 import com.campus.secondhand.product.mapper.ProductMapper;
@@ -137,6 +138,9 @@ public class ProductServiceImpl implements ProductService {
         if (!product.getSellerId().equals(UserContext.getUserId())) {
             throw new RuntimeException("无权修改此商品");
         }
+        if ("交易中".equals(product.getStatus()) || "已售出".equals(product.getStatus())) {
+            throw new RuntimeException("交易中或已售出的商品不允许编辑");
+        }
 
         product.setTitle(request.getTitle());
         product.setDescription(request.getDescription());
@@ -158,6 +162,7 @@ public class ProductServiceImpl implements ProductService {
         if (!product.getSellerId().equals(UserContext.getUserId())) {
             throw new RuntimeException("无权删除此商品");
         }
+        deleteFavorites(product.getId());
         productMapper.deleteById(id);
     }
 
@@ -178,6 +183,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已下架");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        disableFavorites(product.getId(), product.getSellerId());
     }
 
     @Override
@@ -197,6 +203,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("待审核");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        reactivateFavorites(product.getId());
     }
 
     @Override
@@ -215,6 +222,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已售出");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        disableFavorites(product.getId(), product.getSellerId());
     }
 
     @Override
@@ -245,6 +253,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已上架");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        reactivateFavorites(product.getId());
     }
 
     @Override
@@ -260,6 +269,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已售出");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        disableFavorites(product.getId(), product.getSellerId());
     }
 
     @Override
@@ -326,5 +336,36 @@ public class ProductServiceImpl implements ProductService {
             product.setCreatedAt(entity.getCreatedAt().format(TIME_FORMATTER));
         }
         return product;
+    }
+
+    private void disableFavorites(Long productId, Long keepUserId) {
+        List<Favorite> favorites = favoriteMapper.selectList(
+            new LambdaQueryWrapper<Favorite>().eq(Favorite::getProductId, productId)
+        );
+        for (Favorite favorite : favorites) {
+            if (keepUserId != null && keepUserId.equals(favorite.getUserId())) {
+                continue;
+            }
+            if (favorite.getActive() == null || favorite.getActive() != 0) {
+                favorite.setActive(0);
+                favoriteMapper.updateById(favorite);
+            }
+        }
+    }
+
+    private void reactivateFavorites(Long productId) {
+        List<Favorite> favorites = favoriteMapper.selectList(
+            new LambdaQueryWrapper<Favorite>().eq(Favorite::getProductId, productId)
+        );
+        for (Favorite favorite : favorites) {
+            if (favorite.getActive() == null || favorite.getActive() != 1) {
+                favorite.setActive(1);
+                favoriteMapper.updateById(favorite);
+            }
+        }
+    }
+
+    private void deleteFavorites(Long productId) {
+        favoriteMapper.delete(new LambdaQueryWrapper<Favorite>().eq(Favorite::getProductId, productId));
     }
 }

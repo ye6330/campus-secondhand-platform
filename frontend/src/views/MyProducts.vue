@@ -172,7 +172,7 @@ const handleRelist = (id, title) => {
           </div>
         </div>
         <div class="actions" @click.stop>
-          <el-button size="small" @click="router.push(`/products/${p.id}/edit`)">编辑</el-button>
+          <el-button v-if="!['交易中', '已售出'].includes(p.status)" size="small" @click="router.push(`/products/${p.id}/edit`)">编辑</el-button>
           <el-button v-if="p.status === '已上架'" size="small" type="warning" @click="handleOffShelf(p.id, p.title)">下架</el-button>
           <el-button v-if="p.status === '已下架'" size="small" type="success" @click="handleRelist(p.id, p.title)">上架</el-button>
           <el-button size="small" type="danger" @click="handleDelete(p.id, p.title)">删除</el-button>

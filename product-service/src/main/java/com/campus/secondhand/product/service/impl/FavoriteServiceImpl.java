@@ -37,9 +37,22 @@ public class FavoriteServiceImpl implements FavoriteService {
         if (favoriteMapper.exists(userId, productId) > 0) {
             throw new RuntimeException("已经收藏过了");
         }
+        Favorite existing = favoriteMapper.selectOne(
+            new LambdaQueryWrapper<Favorite>()
+                .eq(Favorite::getUserId, userId)
+                .eq(Favorite::getProductId, productId)
+                .last("LIMIT 1")
+        );
+        if (existing != null) {
+            existing.setActive(1);
+            existing.setCreatedAt(LocalDateTime.now());
+            favoriteMapper.updateById(existing);
+            return;
+        }
         Favorite fav = new Favorite();
         fav.setUserId(userId);
         fav.setProductId(productId);
+        fav.setActive(1);
         fav.setCreatedAt(LocalDateTime.now());
         favoriteMapper.insert(fav);
     }
@@ -60,6 +73,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         List<Favorite> favs = favoriteMapper.selectList(
             new LambdaQueryWrapper<Favorite>()
                 .eq(Favorite::getUserId, userId)
+                .eq(Favorite::getActive, 1)
                 .orderByDesc(Favorite::getCreatedAt)
         );
         List<ProductVO> result = new ArrayList<>();

@@ -58,6 +58,9 @@ CREATE TABLE IF NOT EXISTS `operation_log` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
 
+ALTER TABLE `favorite`
+ADD COLUMN IF NOT EXISTS `active` TINYINT NOT NULL DEFAULT 1 COMMENT '收藏是否生效：1生效 0隐藏';
+
 INSERT INTO `product` (`title`, `description`, `price`, `cover_image`, `seller_id`, `seller_name`, `status`)
 SELECT '二手机械键盘', '青轴，宿舍自用，成色较新。', 129.00, 'https://via.placeholder.com/600x400.png?text=Keyboard', 1, '校园卖家A', 1
 WHERE NOT EXISTS (SELECT 1 FROM `product` WHERE `title` = '二手机械键盘');
