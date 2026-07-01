@@ -12,7 +12,10 @@ import com.campus.secondhand.order.dto.HandleOrderRequest;
 import com.campus.secondhand.order.entity.Order;
 import com.campus.secondhand.order.mapper.OrderMapper;
 import com.campus.secondhand.order.service.OrderService;
+import com.campus.secondhand.order.vo.OperationLogVO;
 import com.campus.secondhand.order.vo.OrderVO;
+import com.campus.secondhand.common.web.entity.OperationLogRecord;
+import com.campus.secondhand.common.web.mapper.OperationLogRecordMapper;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,13 +34,15 @@ public class OrderServiceImpl implements OrderService {
     private final ProductClient productClient;
     private final UserClient userClient;
     private final RabbitTemplate rabbitTemplate;
+    private final OperationLogRecordMapper operationLogRecordMapper;
 
     public OrderServiceImpl(OrderMapper orderMapper, ProductClient productClient,
-        UserClient userClient, RabbitTemplate rabbitTemplate) {
+        UserClient userClient, RabbitTemplate rabbitTemplate, OperationLogRecordMapper operationLogRecordMapper) {
         this.orderMapper = orderMapper;
         this.productClient = productClient;
         this.userClient = userClient;
         this.rabbitTemplate = rabbitTemplate;
+        this.operationLogRecordMapper = operationLogRecordMapper;
     }
 
     @Override
@@ -118,6 +123,22 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("无权查看订单");
         }
         return listOrders(status);
+    }
+
+    @Override
+    public List<OperationLogVO> listOperationLogs(String action, String result) {
+        if (!"ADMIN".equals(UserContext.getRole())) {
+            throw new RuntimeException("无权查看操作日志");
+        }
+        LambdaQueryWrapper<OperationLogRecord> wrapper = new LambdaQueryWrapper<OperationLogRecord>()
+            .orderByDesc(OperationLogRecord::getCreatedAt);
+        if (action != null && !action.trim().isEmpty()) {
+            wrapper.like(OperationLogRecord::getAction, action.trim());
+        }
+        if (result != null && !result.trim().isEmpty()) {
+            wrapper.eq(OperationLogRecord::getResult, result.trim());
+        }
+        return operationLogRecordMapper.selectList(wrapper).stream().map(this::toOperationLogVO).collect(Collectors.toList());
     }
 
     @Override
@@ -283,6 +304,25 @@ public class OrderServiceImpl implements OrderService {
         if (order.getTradeConfirmedAt() != null) {
             vo.setTradeConfirmedAt(order.getTradeConfirmedAt().format(TIME_FORMATTER));
         }
+        return vo;
+    }
+
+    private OperationLogVO toOperationLogVO(OperationLogRecord record) {
+        OperationLogVO vo = new OperationLogVO();
+        vo.setId(record.getId());
+        vo.setAction(record.getAction());
+        vo.setOperatorId(record.getOperatorId());
+        vo.setOperatorName(record.getOperatorName());
+        vo.setOperatorRole(record.getOperatorRole());
+        vo.setMethodName(record.getMethodName());
+        vo.setParams(record.getParams());
+        vo.setResult(record.getResult());
+        vo.setErrorMessage(record.getErrorMessage());
+        vo.setDurationMs(record.getDurationMs());
+        if (record.getCreatedAt() != null) {
+            vo.setCreatedAt(record.getCreatedAt().format(TIME_FORMATTER));
+        }
+        vo.setSource("订单模块");
         return vo;
     }
 

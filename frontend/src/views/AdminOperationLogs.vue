@@ -18,12 +18,18 @@ const loadLogs = async () => {
     const params = {}
     if (filters.value.action.trim()) params.action = filters.value.action.trim()
     if (filters.value.result) params.result = filters.value.result
-    const res = await request.get('/api/operation-logs/admin', { params })
-    if (res.code === 200) {
-      logs.value = res.data || []
-      return
-    }
-    throw new Error(res.message)
+    const [adminRes, orderRes] = await Promise.all([
+      request.get('/api/operation-logs/admin', { params }),
+      request.get('/api/orders/operation-logs/admin', { params })
+    ])
+    if (adminRes.code !== 200) throw new Error(adminRes.message)
+    if (orderRes.code !== 200) throw new Error(orderRes.message)
+    logs.value = [...(adminRes.data || []), ...(orderRes.data || [])]
+      .map(item => ({
+        source: item.source || '商品/管理模块',
+        ...item
+      }))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   } catch (e) {
     ElMessage.error(e?.response?.data?.message || e?.message || '加载操作日志失败')
   } finally {
@@ -80,6 +86,7 @@ onMounted(() => {
           <div class="title-group">
             <strong>{{ item.action }}</strong>
             <el-tag size="small" :type="resultTagType(item.result)">{{ item.result }}</el-tag>
+            <el-tag size="small" type="info">{{ item.source }}</el-tag>
           </div>
           <span class="time">{{ item.createdAt }}</span>
         </div>

@@ -3,6 +3,7 @@ package com.campus.secondhand.order.controller;
 import com.campus.secondhand.common.core.result.ApiResponse;
 import com.campus.secondhand.order.dto.CreateOrderRequest;
 import com.campus.secondhand.order.dto.HandleOrderRequest;
+import com.campus.secondhand.order.vo.OperationLogVO;
 import com.campus.secondhand.order.service.OrderService;
 import com.campus.secondhand.order.vo.OrderVO;
 import io.swagger.annotations.Api;
@@ -52,6 +53,13 @@ public class OrderController {
     @GetMapping("/admin")
     public ApiResponse<List<OrderVO>> listAdmin(@RequestParam(required = false) String status) {
         return ApiResponse.success(orderService.listAdmin(status));
+    }
+
+    @ApiOperation("管理员查看订单模块操作日志")
+    @GetMapping("/operation-logs/admin")
+    public ApiResponse<List<OperationLogVO>> listOperationLogs(@RequestParam(required = false) String action,
+        @RequestParam(required = false) String result) {
+        return ApiResponse.success(orderService.listOperationLogs(action, result));
     }
 
     @ApiOperation("卖家确认订单")

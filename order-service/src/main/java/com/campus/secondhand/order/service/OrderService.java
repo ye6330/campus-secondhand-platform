@@ -2,6 +2,7 @@ package com.campus.secondhand.order.service;
 
 import com.campus.secondhand.order.dto.CreateOrderRequest;
 import com.campus.secondhand.order.dto.HandleOrderRequest;
+import com.campus.secondhand.order.vo.OperationLogVO;
 import com.campus.secondhand.order.vo.OrderVO;
 import java.util.List;
 
@@ -14,6 +15,8 @@ public interface OrderService {
     List<OrderVO> listMySell(String status);
 
     List<OrderVO> listAdmin(String status);
+
+    List<OperationLogVO> listOperationLogs(String action, String result);
 
     void confirm(Long id, HandleOrderRequest request);
 
