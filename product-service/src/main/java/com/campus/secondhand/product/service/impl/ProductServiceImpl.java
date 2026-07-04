@@ -18,6 +18,7 @@ import java.util.List;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -129,6 +130,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ProductVO update(Long id, UpdateProductRequest request) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -153,6 +155,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteById(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -168,6 +171,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @OperationLog("卖家下架商品")
+    @Transactional(rollbackFor = Exception.class)
     public void offShelf(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -188,6 +192,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @OperationLog("卖家重新上架商品")
+    @Transactional(rollbackFor = Exception.class)
     public void relist(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -207,6 +212,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void markSold(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -226,6 +232,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void markTradingInternal(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -241,6 +248,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void restoreOnShelfInternal(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -257,6 +265,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void markSoldInternal(Long id) {
         productCache.evict(id);
         Product product = productMapper.selectById(id);
@@ -284,6 +293,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @OperationLog("管理员审核商品")
+    @Transactional(rollbackFor = Exception.class)
     public void review(Long id, String action) {
         productCache.evict(id);
         String role = UserContext.getRole();

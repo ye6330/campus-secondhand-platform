@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -86,6 +87,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @OperationLog("管理员处理举报")
+    @Transactional(rollbackFor = Exception.class)
     public void handle(Long id, String action, HandleReportRequest request) {
         String role = UserContext.getRole();
         if (!"ADMIN".equals(role)) {

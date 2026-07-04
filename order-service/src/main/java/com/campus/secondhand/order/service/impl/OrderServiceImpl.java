@@ -25,6 +25,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -46,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public OrderVO create(CreateOrderRequest request) {
         Long buyerId = UserContext.getUserId();
         String buyerName = UserContext.getUsername();
@@ -143,6 +145,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @OperationLog("卖家确认订单")
+    @Transactional(rollbackFor = Exception.class)
     public void confirm(Long id, HandleOrderRequest request) {
         Order order = getOrder(id);
         Long userId = UserContext.getUserId();
@@ -196,6 +199,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @OperationLog("卖家拒绝订单")
+    @Transactional(rollbackFor = Exception.class)
     public void reject(Long id, HandleOrderRequest request) {
         Order order = getOrder(id);
         Long userId = UserContext.getUserId();
@@ -225,6 +229,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @OperationLog("买家取消订单")
+    @Transactional(rollbackFor = Exception.class)
     public void cancel(Long id) {
         Order order = getOrder(id);
         Long userId = UserContext.getUserId();
