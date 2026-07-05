@@ -235,7 +235,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(rollbackFor = Exception.class)
     public void markTradingInternal(Long id) {
         productCache.evict(id);
-        Product product = productMapper.selectById(id);
+        Product product = productMapper.selectByIdForUpdate(id);
         if (product == null) {
             throw new RuntimeException("商品不存在");
         }

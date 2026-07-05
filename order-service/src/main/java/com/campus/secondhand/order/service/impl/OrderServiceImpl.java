@@ -67,16 +67,14 @@ public class OrderServiceImpl implements OrderService {
         if (!"已上架".equals(status)) {
             throw new RuntimeException("当前商品不可下单");
         }
-        Long pendingCount = orderMapper.selectCount(
-            new LambdaQueryWrapper<Order>()
-                .eq(Order::getProductId, request.getProductId())
-                .in(Order::getStatus, "待确认", "已确认")
-        );
-        if (pendingCount != null && pendingCount > 0) {
-            throw new RuntimeException("该商品正在交易中，暂时无法购买");
-        }
         Map<String, Object> buyerContact = getContact(buyerId);
         Map<String, Object> sellerContact = getContact(sellerId);
+        Map<String, Object> tradingResponse = productClient.markTrading(request.getProductId());
+        if (!isSuccess(tradingResponse)) {
+            throw new RuntimeException(tradingResponse == null || tradingResponse.get("message") == null
+                ? "该商品正在交易中，暂时无法购买"
+                : String.valueOf(tradingResponse.get("message")));
+        }
         Order order = new Order();
         order.setOrderNo(generateOrderNo());
         order.setProductId(request.getProductId());
@@ -93,20 +91,22 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(request.getNote() == null ? null : request.getNote().trim());
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
-        orderMapper.insert(order);
-        Map<String, Object> tradingResponse = productClient.markTrading(order.getProductId());
-        if (!isSuccess(tradingResponse)) {
-            orderMapper.deleteById(order.getId());
-            throw new RuntimeException(tradingResponse == null || tradingResponse.get("message") == null
-                ? "商品状态更新失败"
-                : String.valueOf(tradingResponse.get("message")));
+        try {
+            orderMapper.insert(order);
+            notifyUser(
+                sellerId,
+                "新的购买意向",
+                "用户“" + buyerName + "”想购买你的商品《" + order.getProductTitle() + "》，请前往我的订单处理。"
+            );
+            return toVO(order);
+        } catch (Exception e) {
+            try {
+                productClient.restoreOnShelf(request.getProductId());
+            } catch (Exception ignore) {
+                // best effort compensation
+            }
+            throw e;
         }
-        notifyUser(
-            sellerId,
-            "新的购买意向",
-            "用户“" + buyerName + "”想购买你的商品《" + order.getProductTitle() + "》，请前往我的订单处理。"
-        );
-        return toVO(order);
     }
 
     @Override
