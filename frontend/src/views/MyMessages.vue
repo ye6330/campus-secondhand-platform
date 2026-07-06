@@ -1,12 +1,16 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
+import { useUserStore } from '../store/user'
+import { createPrivateMessageSocket } from '../utils/privateMessageSocket'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const conversations = ref([])
+let socket = null
 
 const loadConversations = async () => {
   loading.value = true
@@ -26,6 +30,13 @@ const loadConversations = async () => {
 
 onMounted(() => {
   loadConversations()
+  socket = createPrivateMessageSocket(userStore.token, () => {
+    loadConversations()
+  })
+})
+
+onUnmounted(() => {
+  socket?.close()
 })
 
 const openChat = (item) => {

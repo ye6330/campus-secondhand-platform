@@ -1,10 +1,11 @@
 <script setup>
 import request from '../utils/request'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { StarFilled, Star } from '@element-plus/icons-vue'
 import { useUserStore } from '../store/user'
+import { createPrivateMessageSocket } from '../utils/privateMessageSocket'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -15,6 +16,7 @@ const keyword = ref('')
 const avatarUploading = ref(false)
 const avatarPreviewVisible = ref(false)
 const avatarInput = ref(null)
+let privateMessageSocket = null
 
 const stats = ref({
   onSale: '—',
@@ -108,6 +110,13 @@ const loadUnreadMessagesCount = async () => {
   }
 }
 
+const connectPrivateMessageSocket = () => {
+  privateMessageSocket?.close()
+  privateMessageSocket = createPrivateMessageSocket(userStore.token, () => {
+    loadUnreadMessagesCount()
+  })
+}
+
 const loadCurrentUser = async () => {
   if (!userStore.token) {
     router.push('/login')
@@ -137,6 +146,11 @@ onMounted(async () => {
   loadFavoritesCount()
   loadNotificationsCount()
   loadUnreadMessagesCount()
+  connectPrivateMessageSocket()
+})
+
+onUnmounted(() => {
+  privateMessageSocket?.close()
 })
 
 const handleSearch = () => {

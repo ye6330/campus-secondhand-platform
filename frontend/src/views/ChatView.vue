@@ -1,9 +1,10 @@
 <script setup>
-import { onMounted, ref, nextTick, watch } from 'vue'
+import { onMounted, onUnmounted, ref, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '../utils/request'
 import { useUserStore } from '../store/user'
+import { createPrivateMessageSocket } from '../utils/privateMessageSocket'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,6 +15,19 @@ const inputContent = ref('')
 const sending = ref(false)
 const targetUser = ref({ nickname: '', username: '' })
 const messagesEnd = ref(null)
+let socket = null
+
+const appendIncomingMessage = (message) => {
+  if (messages.value.some(item => item.id === message.id)) {
+    return
+  }
+  messages.value.push(message)
+  if (!targetUser.value.nickname && !targetUser.value.username) {
+    targetUser.value.nickname = message.fromNickname || message.toNickname || ''
+    targetUser.value.username = message.fromUsername || message.toUsername || ''
+  }
+  scrollToBottom()
+}
 
 const targetUserId = () => route.params.targetUserId
 
@@ -76,12 +90,26 @@ const sendMessage = async () => {
 
 const displayName = () => targetUser.value.nickname || targetUser.value.username || '对方'
 
+const connectSocket = () => {
+  socket?.close()
+  socket = createPrivateMessageSocket(userStore.token, (message) => {
+    if (String(message.fromUserId) === String(targetUserId())) {
+      appendIncomingMessage(message)
+    }
+  })
+}
+
 onMounted(() => {
   loadMessages()
+  connectSocket()
 })
 
 watch(() => route.params.targetUserId, () => {
   loadMessages()
+})
+
+onUnmounted(() => {
+  socket?.close()
 })
 </script>
 
