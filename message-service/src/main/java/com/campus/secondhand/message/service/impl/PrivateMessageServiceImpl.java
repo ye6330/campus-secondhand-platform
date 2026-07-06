@@ -10,6 +10,9 @@ import com.campus.secondhand.message.mapper.PrivateMessageMapper;
 import com.campus.secondhand.message.service.PrivateMessageService;
 import com.campus.secondhand.message.vo.ConversationVO;
 import com.campus.secondhand.message.vo.PrivateMessageVO;
+import com.campus.secondhand.message.websocket.PrivateMessageSocketHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -25,10 +28,15 @@ public class PrivateMessageServiceImpl implements PrivateMessageService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final PrivateMessageMapper privateMessageMapper;
     private final UserServiceClient userServiceClient;
+    private final PrivateMessageSocketHandler privateMessageSocketHandler;
+    private final ObjectMapper objectMapper;
 
-    public PrivateMessageServiceImpl(PrivateMessageMapper privateMessageMapper, UserServiceClient userServiceClient) {
+    public PrivateMessageServiceImpl(PrivateMessageMapper privateMessageMapper, UserServiceClient userServiceClient,
+        PrivateMessageSocketHandler privateMessageSocketHandler, ObjectMapper objectMapper) {
         this.privateMessageMapper = privateMessageMapper;
         this.userServiceClient = userServiceClient;
+        this.privateMessageSocketHandler = privateMessageSocketHandler;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -56,7 +64,10 @@ public class PrivateMessageServiceImpl implements PrivateMessageService {
         message.setReadStatus(0);
         message.setCreatedAt(LocalDateTime.now());
         privateMessageMapper.insert(message);
-        return toVO(message, currentUserId);
+        PrivateMessageVO senderView = toVO(message, currentUserId);
+        PrivateMessageVO receiverView = toVO(message, request.getToUserId());
+        pushToReceiver(request.getToUserId(), receiverView);
+        return senderView;
     }
 
     @Override
@@ -170,5 +181,16 @@ public class PrivateMessageServiceImpl implements PrivateMessageService {
         } catch (Exception ignored) {
         }
         return null;
+    }
+
+    private void pushToReceiver(Long toUserId, PrivateMessageVO vo) {
+        try {
+            String payload = objectMapper.writeValueAsString(Map.of(
+                "type", "private_message",
+                "data", vo
+            ));
+            privateMessageSocketHandler.pushPrivateMessage(toUserId, payload);
+        } catch (JsonProcessingException ignored) {
+        }
     }
 }

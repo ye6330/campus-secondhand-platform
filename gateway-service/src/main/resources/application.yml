@@ -53,6 +53,10 @@ spring:
           uri: lb://campus-message-service
           predicates:
             - Path=/api/messages/**,/api/notifications/**
+        - id: message-ws-service
+          uri: lb:ws://campus-message-service
+          predicates:
+            - Path=/ws/private
 
 management:
   endpoints:
