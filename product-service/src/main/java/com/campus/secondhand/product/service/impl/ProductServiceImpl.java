@@ -7,47 +7,76 @@ import com.campus.secondhand.product.dto.CreateProductRequest;
 import com.campus.secondhand.product.dto.UpdateProductRequest;
 import com.campus.secondhand.product.entity.Favorite;
 import com.campus.secondhand.product.entity.Product;
+import com.campus.secondhand.product.entity.ProductIndex;
 import com.campus.secondhand.product.mapper.FavoriteMapper;
 import com.campus.secondhand.product.mapper.ProductMapper;
+import com.campus.secondhand.product.repository.ProductIndexRepository;
 import com.campus.secondhand.product.service.ProductService;
 import com.campus.secondhand.product.vo.ProductVO;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final ProductMapper productMapper;
     private final FavoriteMapper favoriteMapper;
     private final Cache productCache;
+    private final ProductIndexRepository productIndexRepository;
+    private final ElasticsearchOperations elasticsearchOperations;
 
     public ProductServiceImpl(ProductMapper productMapper, FavoriteMapper favoriteMapper,
-        CacheManager cacheManager) {
+        CacheManager cacheManager, ProductIndexRepository productIndexRepository,
+        ElasticsearchOperations elasticsearchOperations) {
         this.productMapper = productMapper;
         this.favoriteMapper = favoriteMapper;
         this.productCache = cacheManager.getCache("products");
+        this.productIndexRepository = productIndexRepository;
+        this.elasticsearchOperations = elasticsearchOperations;
     }
 
     @Override
     public List<ProductVO> list(String keyword) {
-        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
-            .eq(Product::getStatus, "已上架");
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            wrapper.and(w -> w
-                .like(Product::getTitle, keyword)
-                .or()
-                .like(Product::getDescription, keyword)
-            );
+        if (keyword == null || keyword.trim().isEmpty()) {
+            LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
+                .eq(Product::getStatus, "已上架")
+                .orderByDesc(Product::getId);
+            return toVOList(productMapper.selectList(wrapper));
         }
-        wrapper.orderByDesc(Product::getId);
-        return toVOList(productMapper.selectList(wrapper));
+        return searchByKeyword(keyword.trim());
+    }
+
+    private List<ProductVO> searchByKeyword(String keyword) {
+        NativeSearchQuery query = new NativeSearchQueryBuilder()
+            .withQuery(QueryBuilders.boolQuery()
+                .must(QueryBuilders.multiMatchQuery(keyword, "title", "description"))
+                .filter(QueryBuilders.termQuery("status", "已上架")))
+            .build();
+        SearchHits<ProductIndex> hits = elasticsearchOperations.search(query, ProductIndex.class);
+        List<Long> ids = hits.getSearchHits().stream()
+            .map(hit -> hit.getContent().getId())
+            .collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Product> products = productMapper.selectBatchIds(ids);
+        return toVOList(products);
     }
 
     @Override
@@ -55,16 +84,16 @@ public class ProductServiceImpl implements ProductService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return java.util.Collections.emptyList();
         }
-        LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<Product>()
-            .select(Product::getTitle)
-            .eq(Product::getStatus, "已上架")
-            .like(Product::getTitle, keyword)
-            .last("LIMIT 8");
-        List<Product> products = productMapper.selectList(wrapper);
+        NativeSearchQuery query = new NativeSearchQueryBuilder()
+            .withQuery(QueryBuilders.matchQuery("title", keyword.trim()))
+            .withPageable(org.springframework.data.domain.PageRequest.of(0, 8))
+            .build();
+        SearchHits<ProductIndex> hits = elasticsearchOperations.search(query, ProductIndex.class);
         List<String> titles = new ArrayList<>();
-        for (Product p : products) {
-            if (!titles.contains(p.getTitle())) {
-                titles.add(p.getTitle());
+        for (var hit : hits.getSearchHits()) {
+            String title = hit.getContent().getTitle();
+            if (!titles.contains(title)) {
+                titles.add(title);
             }
         }
         return titles;
@@ -126,6 +155,7 @@ public class ProductServiceImpl implements ProductService {
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.insert(product);
+        indexProduct(product);
         return toVO(product);
     }
 
@@ -151,6 +181,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("待审核");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
         return toVO(product);
     }
 
@@ -167,6 +198,7 @@ public class ProductServiceImpl implements ProductService {
         }
         deleteFavorites(product.getId());
         productMapper.deleteById(id);
+        deleteIndex(id);
     }
 
     @Override
@@ -187,6 +219,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已下架");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
         disableFavorites(product.getId(), product.getSellerId());
     }
 
@@ -208,6 +241,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("待审核");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
         reactivateFavorites(product.getId());
     }
 
@@ -228,6 +262,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已售出");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
         disableFavorites(product.getId(), product.getSellerId());
     }
 
@@ -245,6 +280,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("交易中");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
     }
 
     @Override
@@ -261,6 +297,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已上架");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
         reactivateFavorites(product.getId());
     }
 
@@ -278,6 +315,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus("已售出");
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
         disableFavorites(product.getId(), product.getSellerId());
     }
 
@@ -316,6 +354,23 @@ public class ProductServiceImpl implements ProductService {
         }
         product.setUpdatedAt(LocalDateTime.now());
         productMapper.updateById(product);
+        indexProduct(product);
+    }
+
+    private void indexProduct(Product product) {
+        try {
+            productIndexRepository.save(ProductIndex.from(product));
+        } catch (Exception e) {
+            log.warn("同步商品到ES失败 productId={}", product.getId(), e);
+        }
+    }
+
+    private void deleteIndex(Long id) {
+        try {
+            productIndexRepository.deleteById(id);
+        } catch (Exception e) {
+            log.warn("删除ES索引失败 productId={}", id, e);
+        }
     }
 
     private List<ProductVO> toVOList(List<Product> products) {

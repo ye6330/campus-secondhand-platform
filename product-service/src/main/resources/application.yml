@@ -25,6 +25,8 @@ spring:
     password: 123456
   cache:
     type: redis
+  elasticsearch:
+    uris: http://192.168.209.128:9200
 
 oss:
   endpoint: oss-cn-beijing.aliyuncs.com
