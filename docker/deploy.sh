@@ -7,7 +7,14 @@ cd "$(dirname "$0")/.."
 mvn clean package -DskipTests
 
 echo ""
-echo "===== 2. 检查 jar 包是否生成 ====="
+echo "===== 2. 构建前端 dist ====="
+cd frontend
+npm install
+npm run build
+
+echo ""
+echo "===== 3. 检查 jar 包是否生成 ====="
+cd ..
 ls -lh gateway-service/target/*.jar
 ls -lh user-service/target/*.jar
 ls -lh product-service/target/*.jar
@@ -16,12 +23,13 @@ ls -lh message-service/target/*.jar
 ls -lh admin-service/target/*.jar
 
 echo ""
-echo "===== 3. 启动全部服务 ====="
+echo "===== 4. 构建并启动全部服务 ====="
 cd docker
+docker compose build
 docker compose up -d
 
 echo ""
-echo "===== 4. 检查所有容器状态 ====="
+echo "===== 5. 检查所有容器状态 ====="
 docker compose ps
 
 echo ""
