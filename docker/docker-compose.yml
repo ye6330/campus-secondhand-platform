@@ -68,6 +68,24 @@ services:
     networks:
       - campus-net
 
+  seata-server:
+    image: seataio/seata-server:1.6.1
+    container_name: campus-seata-server
+    restart: always
+    environment:
+      - SEATA_IP=${SEATA_IP}
+      - SEATA_PORT=8091
+      - STORE_MODE=file
+    ports:
+      - "${SEATA_PORT}:8091"
+    volumes:
+      - ./seata/registry.conf:/seata-server/resources/registry.conf
+      - ./seata/file.conf:/seata-server/resources/file.conf
+    depends_on:
+      - nacos
+    networks:
+      - campus-net
+
   # ===== 业务微服务 =====
 
   gateway-service:

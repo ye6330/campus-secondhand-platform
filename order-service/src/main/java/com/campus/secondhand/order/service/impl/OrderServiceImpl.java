@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.seata.spring.annotation.GlobalTransactional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -47,6 +48,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @GlobalTransactional(rollbackFor = Exception.class)
     @Transactional(rollbackFor = Exception.class)
     public OrderVO create(CreateOrderRequest request) {
         Long buyerId = UserContext.getUserId();
@@ -91,22 +93,13 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(request.getNote() == null ? null : request.getNote().trim());
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
-        try {
-            orderMapper.insert(order);
-            notifyUser(
-                sellerId,
-                "新的购买意向",
-                "用户“" + buyerName + "”想购买你的商品《" + order.getProductTitle() + "》，请前往我的订单处理。"
-            );
-            return toVO(order);
-        } catch (Exception e) {
-            try {
-                productClient.restoreOnShelf(request.getProductId());
-            } catch (Exception ignore) {
-                // best effort compensation
-            }
-            throw e;
-        }
+        orderMapper.insert(order);
+        notifyUser(
+            sellerId,
+            "新的购买意向",
+            "用户“" + buyerName + "”想购买你的商品《" + order.getProductTitle() + "》，请前往我的订单处理。"
+        );
+        return toVO(order);
     }
 
     @Override
@@ -145,6 +138,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @OperationLog("卖家确认订单")
+    @GlobalTransactional(rollbackFor = Exception.class)
     @Transactional(rollbackFor = Exception.class)
     public void confirm(Long id, HandleOrderRequest request) {
         Order order = getOrder(id);
@@ -199,6 +193,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @OperationLog("卖家拒绝订单")
+    @GlobalTransactional(rollbackFor = Exception.class)
     @Transactional(rollbackFor = Exception.class)
     public void reject(Long id, HandleOrderRequest request) {
         Order order = getOrder(id);
@@ -229,6 +224,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @OperationLog("买家取消订单")
+    @GlobalTransactional(rollbackFor = Exception.class)
     @Transactional(rollbackFor = Exception.class)
     public void cancel(Long id) {
         Order order = getOrder(id);

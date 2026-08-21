@@ -44,6 +44,7 @@ MySQL  /  Redis  /  RabbitMQ  /  Nacos
 | campus-order-service | 9103 |
 | campus-message-service | 9104 |
 | campus-admin-service | 9105 |
+| seata-server | 8091 |
 
 ## 模块结构
 
@@ -56,6 +57,16 @@ MySQL  /  Redis  /  RabbitMQ  /  Nacos
 - `common/common-core`：公共常量、DTO、统一响应
 - `common/common-web`：异常处理、日志实体、Knife4j 文档
 - `common/common-security`：JWT 过滤器、用户上下文
+
+## Seata 分布式事务
+
+订单下单 / 确认 / 拒绝 / 取消涉及跨服务写库（order-service 写订单表、product-service 改商品状态），通过 Seata AT 模式保证全局事务一致性：
+
+- `order-service` 为全局事务发起方（`@GlobalTransactional`），Feign 自动透传 XID
+- `product-service` 为分支参与方（`@Transactional` + Seata 数据源代理自动纳入分支）
+- 参与库（`trade_order_db`、`trade_product_db`）需建 `undo_log` 表：`order-service/sql/seata_undo_log.sql`、`product-service/sql/seata_undo_log.sql`
+- Seata Server 由 docker-compose 的 `seata-server` 容器提供（file 模式存储，注册到 Nacos）
+- 通知写入仍走 RabbitMQ 异步（MQ 消息事务，不纳入全局事务），属于最终一致性设计
 
 ## 环境要求
 
@@ -80,7 +91,7 @@ docker compose ps
 如果服务器已有这些容器，直接启动即可：
 
 ```bash
-docker start campus-mysql redis campus-rabbitmq campus-nacos campus-nginx
+docker start campus-mysql redis campus-rabbitmq campus-nacos campus-seata-server campus-nginx
 ```
 
 后端连接中间件地址统一为 `192.168.209.128`，配置在各服务 `application.yml` / `bootstrap.yml` 中。
@@ -111,6 +122,15 @@ http://192.168.209.128:8848/nacos
 ```
 
 服务列表应能看到 6 个服务且健康状态正常。
+
+### 2.1 初始化 Seata undo_log 表
+
+Seata AT 模式需要在每个参与全局事务的数据库执行建表脚本：
+
+```bash
+mysql -h 192.168.209.128 -uroot -p123456 trade_order_db < order-service/sql/seata_undo_log.sql
+mysql -h 192.168.209.128 -uroot -p123456 trade_product_db < product-service/sql/seata_undo_log.sql
+```
 
 ### 3. 部署前端（Linux Nginx）
 

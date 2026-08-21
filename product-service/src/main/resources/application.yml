@@ -28,11 +28,30 @@ spring:
   elasticsearch:
     uris: http://192.168.209.128:9200
 
+seata:
+  application-id: campus-product-service
+  tx-service-group: campus_tx_group
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: 192.168.209.128:8848
+      namespace: ""
+      group: SEATA_GROUP
+      cluster: default
+      username: nacos
+      password: nacos
+  service:
+    vgroup-mapping:
+      campus_tx_group: default
+    grouplist:
+      default: 192.168.209.128:8091
+
 oss:
   endpoint: oss-cn-beijing.aliyuncs.com
   bucket: aaaa-campus-trade-images
-  access-key-id: ${OSS_ACCESS_KEY_ID}
-  access-key-secret: ${OSS_ACCESS_KEY_SECRET}
+  access-key-id: YOUR_OSS_ACCESS_KEY_ID
+  access-key-secret: YOUR_OSS_ACCESS_KEY_SECRET
   dir: products/
 
 logging:

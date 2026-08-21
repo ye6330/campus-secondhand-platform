@@ -20,3 +20,22 @@ spring:
     port: 5672
     username: root
     password: 123456
+
+seata:
+  application-id: campus-order-service
+  tx-service-group: campus_tx_group
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: 192.168.209.128:8848
+      namespace: ""
+      group: SEATA_GROUP
+      cluster: default
+      username: nacos
+      password: nacos
+  service:
+    vgroup-mapping:
+      campus_tx_group: default
+    grouplist:
+      default: 192.168.209.128:8091
