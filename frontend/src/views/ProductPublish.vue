@@ -182,7 +182,7 @@ const goBack = () => {
 <style scoped>
 .publish-page {
   min-height: 100%;
-  background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 100%);
+  background: var(--paper);
   padding: 40px 20px;
 }
 
@@ -234,7 +234,7 @@ const goBack = () => {
   justify-content: center;
   gap: 12px;
   color: #909399;
-  background: #fafbff;
+  background: var(--surface);
 }
 
 .cover-preview-wrapper {

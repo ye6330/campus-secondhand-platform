@@ -123,7 +123,7 @@ const handleLogout = () => {
   <div class="admin-page" v-loading="loading">
     <header class="admin-header">
       <div class="header-left">
-        <el-icon :size="28" class="header-logo"><School /></el-icon>
+          <el-icon :size="28" class="header-logo"><PriceTag /></el-icon>
         <span class="header-title">管理后台</span>
       </div>
       <div class="header-right">
@@ -240,7 +240,7 @@ const handleLogout = () => {
 <style scoped>
 .admin-page {
   min-height: 100%;
-  background: #f0f2f5;
+  background: var(--paper);
 }
 
 .admin-header {
@@ -249,7 +249,7 @@ const handleLogout = () => {
   justify-content: space-between;
   padding: 0 40px;
   height: 64px;
-  background: #1a1a2e;
+  background: var(--ink-900);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 0;
@@ -263,7 +263,7 @@ const handleLogout = () => {
 }
 
 .header-logo {
-  color: #e94560;
+  color: var(--brand-500);
 }
 
 .header-title {
@@ -313,10 +313,11 @@ const handleLogout = () => {
 }
 
 .welcome-card {
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
-  border-radius: 16px;
-  padding: 36px 40px;
-  color: #fff;
+  background: var(--ink-900);
+  border-left: 4px solid var(--brand-500);
+  border-radius: var(--radius-lg);
+  padding: 32px 36px;
+  color: #f5f1ea;
   margin-bottom: 32px;
 }
 
@@ -353,7 +354,7 @@ const handleLogout = () => {
 }
 
 .stat-icon.warn { color: #e6a23c; }
-.stat-icon.primary { color: #409eff; }
+.stat-icon.primary { color: var(--brand-500); }
 .stat-icon.success { color: #67c23a; }
 .stat-icon.info { color: #909399; }
 

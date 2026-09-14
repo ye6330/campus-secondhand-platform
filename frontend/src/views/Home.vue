@@ -258,7 +258,7 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
   <div class="workspace-page">
     <header class="topbar">
       <div class="brand">
-        <el-icon :size="24" class="brand-icon"><School /></el-icon>
+        <el-icon :size="24" class="brand-icon"><PriceTag /></el-icon>
         <div>
           <div class="brand-title">校园二手交易平台</div>
           <div class="brand-subtitle">闲置流转工作台</div>
@@ -355,14 +355,14 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
 
       <main class="content-area">
         <section class="hero-panel">
-          <div>
-            <span class="hero-badge">商品广场</span>
-            <h1>在售商品</h1>
-            <p>默认展示已上架商品，支持搜索、收藏和快速进入详情。</p>
+          <div class="hero-copy">
+            <span class="hero-eyebrow">商品广场</span>
+            <h1>在售闲置</h1>
+            <p>当前有 {{ products.length }} 件商品在售，可搜索、收藏或直接进入详情。</p>
           </div>
           <div class="hero-actions">
-            <el-button @click="clearSearch">查看全部</el-button>
-            <el-button type="primary" @click="router.push('/products/publish')">发布商品</el-button>
+            <el-button @click="clearSearch">刷新列表</el-button>
+            <el-button type="primary" @click="router.push('/products/publish')">发布闲置</el-button>
           </div>
         </section>
 
@@ -427,8 +427,8 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
 <style scoped>
 .workspace-page {
   min-height: 100%;
-  background: #eef2f7;
-  color: #111827;
+  background: var(--paper);
+  color: var(--ink-900);
 }
 
 .topbar {
@@ -437,8 +437,8 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -451,7 +451,7 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
 }
 
 .brand-icon {
-  color: #4f46e5;
+  color: var(--brand-500);
 }
 
 .brand-title {
@@ -542,9 +542,9 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
 .hero-panel,
 .product-section,
 .product-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
 }
 
 .sidebar-section,
@@ -582,8 +582,8 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
 
 .nav-item:hover,
 .nav-item.active {
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--brand-50);
+  color: var(--brand-700);
 }
 
 .nav-left {
@@ -603,11 +603,11 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
   gap: 10px;
   padding: 12px;
   border-radius: 12px;
-  background: #f8fafc;
+  background: var(--paper-strong);
 }
 
 .mini-stat-icon {
-  color: #4f46e5;
+  color: var(--brand-500);
 }
 
 .mini-stat-value {
@@ -628,36 +628,35 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
 }
 
 .hero-panel {
-  padding: 28px;
+  padding: 26px 28px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
-  background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 55%, #7c3aed 100%);
-  color: #ffffff;
+  background: var(--ink-900);
+  color: #f5f1ea;
   border: 0;
+  border-left: 4px solid var(--brand-500);
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
+.hero-eyebrow {
+  display: block;
+  color: var(--brand-400);
   font-size: 12px;
-  margin-bottom: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 12px;
 }
 
 .hero-panel h1 {
   margin: 0 0 10px;
-  font-size: 34px;
-  line-height: 1.1;
+  font-size: 30px;
+  line-height: 1.15;
 }
 
 .hero-panel p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: #b8b1a6;
 }
 
 .hero-actions {
@@ -761,9 +760,10 @@ const roleTagType = computed(() => userStore.role === 'ADMIN' ? 'danger' : 'info
   border: 0;
   background: transparent;
   padding: 0;
-  color: #2563eb;
+  color: var(--brand-600);
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .product-meta {

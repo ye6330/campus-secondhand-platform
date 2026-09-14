@@ -41,228 +41,268 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="login-page">
-    <div class="login-bg">
-      <div class="shape shape-1"></div>
-      <div class="shape shape-2"></div>
-      <div class="shape shape-3"></div>
-    </div>
-    <div class="login-container">
-      <div class="login-card">
-        <div class="login-header">
-          <div class="logo-icon">
-            <el-icon :size="36"><School /></el-icon>
-          </div>
-          <h2>校园二手交易平台</h2>
-          <p>欢迎回来，请登录您的账号</p>
-        </div>
-        <el-form
-          :model="form"
-          class="login-form"
-          @keyup.enter="handleLogin"
-        >
+  <div class="auth-page">
+    <aside class="auth-aside">
+      <div class="aside-brand">
+        <span class="brand-mark">校</span>
+        <span class="brand-name">校园二手交易平台</span>
+      </div>
+
+      <div class="aside-body">
+        <h1>把闲置<br />换成下一个人<br />需要的东西</h1>
+        <p>面向校园的二手交易与互助平台，支持商品发布、收藏、下单、站内私信和交易评价。</p>
+        <ul class="aside-points">
+          <li><span>01</span>同校交易，当面取货更放心</li>
+          <li><span>02</span>闲置发布后即可被同学搜到</li>
+          <li><span>03</span>下单、私信、通知一站式完成</li>
+        </ul>
+      </div>
+
+      <div class="aside-foot">校内闲置流转 · 仅限同学之间使用</div>
+    </aside>
+
+    <main class="auth-main">
+      <div class="auth-form-wrap">
+        <header class="auth-head">
+          <span class="form-brand">校</span>
+          <h2>登录账号</h2>
+          <p>使用你的用户名和密码进入平台</p>
+        </header>
+
+        <el-form :model="form" class="auth-form" @keyup.enter="handleLogin">
           <el-form-item>
+            <label class="field-label">用户名</label>
             <el-input
               v-model="form.username"
-              placeholder="用户名"
+              placeholder="请输入用户名"
               :prefix-icon="User"
               size="large"
             />
           </el-form-item>
           <el-form-item>
+            <label class="field-label">密码</label>
             <el-input
               v-model="form.password"
               type="password"
-              placeholder="密码"
+              placeholder="请输入密码"
               :prefix-icon="Lock"
               size="large"
               show-password
             />
           </el-form-item>
-          <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
-              class="login-btn"
-              :loading="loading"
-              @click="handleLogin"
-            >
-              登 录
-            </el-button>
-          </el-form-item>
+          <el-button
+            type="primary"
+            size="large"
+            class="auth-submit"
+            :loading="loading"
+            @click="handleLogin"
+          >
+            登录
+          </el-button>
         </el-form>
-        <div class="login-footer">
-          还没有账号？
-          <router-link to="/register">立即注册</router-link>
+
+        <div class="auth-foot">
+          还没有账号？<router-link to="/register">注册一个</router-link>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.login-page {
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.auth-page {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--paper);
 }
 
-.login-bg {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+.auth-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 56px;
+  background: var(--ink-900);
+  color: #f5f1ea;
 }
 
-.shape {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.4;
-}
-
-.shape-1 {
-  width: 400px;
-  height: 400px;
-  background: #a18cd1;
-  top: -100px;
-  left: -100px;
-  animation: float 8s ease-in-out infinite;
-}
-
-.shape-2 {
-  width: 300px;
-  height: 300px;
-  background: #fbc2eb;
-  bottom: -50px;
-  right: -50px;
-  animation: float 10s ease-in-out infinite reverse;
-}
-
-.shape-3 {
-  width: 200px;
-  height: 200px;
-  background: #a6c1ee;
-  top: 50%;
-  left: 60%;
-  animation: float 12s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -30px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-}
-
-.login-container {
-  position: relative;
-  height: 100%;
+.aside-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 1;
+  gap: 10px;
 }
 
-.login-card {
-  width: 420px;
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  animation: slideUp 0.6s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.logo-icon {
-  width: 64px;
-  height: 64px;
-  line-height: 64px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 16px;
-  color: #fff;
+.brand-mark,
+.form-brand {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--brand-500);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.aside-body h1 {
+  margin: 0 0 22px;
+  font-size: 40px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.aside-body p {
+  max-width: 420px;
+  margin: 0 0 34px;
+  color: #b8b1a6;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.aside-points {
+  list-style: none;
+  display: grid;
+  gap: 14px;
+}
+
+.aside-points li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ded8ce;
+  font-size: 14px;
+}
+
+.aside-points span {
+  color: var(--brand-400);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.aside-foot {
+  color: #7d766c;
+  font-size: 12px;
+}
+
+.auth-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.auth-form-wrap {
+  width: 100%;
+  max-width: 360px;
+}
+
+.auth-head {
+  margin-bottom: 30px;
+}
+
+.form-brand {
+  display: none;
   margin-bottom: 16px;
 }
 
-.login-header h2 {
-  font-size: 22px;
-  color: #303133;
-  margin-bottom: 8px;
+.auth-head h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  color: var(--ink-900);
 }
 
-.login-header p {
+.auth-head p {
+  margin: 0;
+  color: var(--ink-500);
   font-size: 14px;
-  color: #909399;
 }
 
-.login-form {
-  margin-bottom: 20px;
+.auth-form :deep(.el-form-item) {
+  margin-bottom: 18px;
 }
 
-.login-form :deep(.el-input__wrapper) {
-  border-radius: 10px;
-  padding: 4px 16px;
-  box-shadow: 0 0 0 1px #dcdfe6 inset;
+.field-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--ink-700);
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.login-form :deep(.el-input__wrapper:hover) {
-  box-shadow: 0 0 0 1px #667eea inset;
+.auth-form :deep(.el-input__wrapper) {
+  border-radius: var(--radius-md);
+  padding: 3px 14px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line-strong) inset;
 }
 
-.login-form :deep(.el-input__wrapper.is-focus) {
-  box-shadow: 0 0 0 2px #667eea inset;
+.auth-form :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--brand-300) inset;
 }
 
-.login-form :deep(.el-input__inner) {
-  height: 44px;
+.auth-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 2px var(--brand-500) inset;
 }
 
-.login-btn {
+.auth-form :deep(.el-input__inner) {
+  height: 42px;
+}
+
+.auth-submit {
   width: 100%;
   height: 46px;
-  font-size: 16px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border: none;
-  letter-spacing: 4px;
+  margin-top: 6px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  letter-spacing: 0.06em;
 }
 
-.login-btn:hover {
-  background: linear-gradient(135deg, #5a6fd6, #6a4198);
-}
-
-.login-footer {
+.auth-foot {
+  margin-top: 22px;
+  color: var(--ink-500);
+  font-size: 13px;
   text-align: center;
-  font-size: 14px;
-  color: #909399;
 }
 
-.login-footer a {
-  color: #667eea;
+.auth-foot a {
+  color: var(--brand-600);
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
 }
 
-.login-footer a:hover {
-  color: #764ba2;
+.auth-foot a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-aside {
+    display: none;
+  }
+
+  .auth-main {
+    padding: 32px 20px;
+  }
+
+  .auth-form-wrap {
+    max-width: 420px;
+  }
+
+  .form-brand {
+    display: inline-flex;
+  }
 }
 </style>

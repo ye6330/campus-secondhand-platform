@@ -434,7 +434,7 @@ const submitOrder = async () => {
 <style scoped>
 .page {
   min-height: 100%;
-  background: #f5f7fa;
+  background: var(--paper);
   padding: 32px 20px;
 }
 
@@ -510,7 +510,7 @@ const submitOrder = async () => {
   border: 1px solid #ebeef5;
   border-radius: 12px;
   padding: 14px 16px;
-  background: #fafcff;
+  background: var(--surface);
 }
 
 .comment-top-row {
@@ -648,13 +648,13 @@ const submitOrder = async () => {
 .meta-divider {
   width: 1px;
   height: 16px;
-  background: #e4e7ed;
+  background: var(--line);
 }
 
 .seller-link {
   border: none;
   background: transparent;
-  color: #409eff;
+  color: var(--brand-500);
   cursor: pointer;
   padding: 0;
   font-size: 14px;
@@ -662,7 +662,7 @@ const submitOrder = async () => {
 }
 
 .seller-link:hover {
-  color: #66b1ff;
+  color: var(--brand-400);
 }
 
 @media (max-width: 768px) {

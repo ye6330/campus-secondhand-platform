@@ -297,7 +297,7 @@ const contactText = (item) => {
 <style scoped>
 .page {
   min-height: 100%;
-  background: #f5f7fa;
+  background: var(--paper);
   padding: 32px 20px;
 }
 .page-header, .toolbar, .order-list {
@@ -349,7 +349,7 @@ const contactText = (item) => {
   height: 72px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid var(--line);
 }
 .clickable {
   cursor: zoom-in;

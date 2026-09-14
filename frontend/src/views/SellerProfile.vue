@@ -146,7 +146,7 @@ const toggleFavorite = async (e, product) => {
 <style scoped>
 .page {
   min-height: 100%;
-  background: #f5f7fa;
+  background: var(--paper);
   padding: 32px 20px;
 }
 
@@ -218,7 +218,7 @@ const toggleFavorite = async (e, product) => {
   object-fit: cover;
   border-radius: 12px;
   display: block;
-  background: #eef2ff;
+  background: var(--paper-strong);
 }
 
 .product-card.status-已售出 .product-cover {

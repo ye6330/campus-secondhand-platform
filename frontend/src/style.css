@@ -1,10 +1,75 @@
+:root {
+  /* Brand palette: warm market tones instead of the default template violet */
+  --brand-50: #fdf3ec;
+  --brand-100: #fbe1d2;
+  --brand-200: #f5c1a4;
+  --brand-300: #ef9c6f;
+  --brand-400: #ea7a3c;
+  --brand-500: #e8590c;
+  --brand-600: #d04909;
+  --brand-700: #a83a08;
+  --brand-800: #7f2c07;
+  --brand-900: #5c2005;
+
+  --ink-900: #1f1d1a;
+  --ink-700: #3f3a34;
+  --ink-500: #6f6860;
+  --ink-400: #8b847a;
+  --ink-300: #b4ada3;
+
+  --paper: #f6f2ec;
+  --paper-strong: #efe9e0;
+  --surface: #ffffff;
+  --line: #e6e0d8;
+  --line-strong: #d8d0c5;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(31, 29, 26, 0.06);
+  --shadow-md: 0 8px 24px rgba(31, 29, 26, 0.08);
+
+  /* Element Plus theming */
+  --el-color-primary: #e8590c;
+  --el-color-primary-light-3: #ee7a3d;
+  --el-color-primary-light-5: #f4a179;
+  --el-color-primary-light-7: #f9c7b0;
+  --el-color-primary-light-8: #fbdbcd;
+  --el-color-primary-light-9: #fdeee7;
+  --el-color-primary-dark-2: #ba470a;
+
+  --el-border-radius-base: 8px;
+  --el-font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
   font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: var(--ink-900);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--brand-600);
+}
+
+/* Reduce the bubbly default rounding that reads as generated UI */
+.el-button {
+  font-weight: 600;
+}
+
+.el-card,
+.el-dialog,
+.el-message-box {
+  border-radius: var(--radius-md);
 }

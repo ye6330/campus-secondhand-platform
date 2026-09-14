@@ -133,7 +133,7 @@ const handleSelectAll = () => {
 <style scoped>
 .page {
   min-height: 100%;
-  background: #f5f7fa;
+  background: var(--paper);
   padding: 32px 20px;
 }
 

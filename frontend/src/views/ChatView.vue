@@ -160,7 +160,7 @@ onUnmounted(() => {
 <style scoped>
 .page {
   min-height: 100%;
-  background: #f5f7fa;
+  background: var(--paper);
   display: flex;
   flex-direction: column;
 }
@@ -205,7 +205,7 @@ onUnmounted(() => {
   border-bottom-left-radius: 6px;
 }
 .message-item.mine .bubble {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--brand-500);
   color: #fff;
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 6px;
