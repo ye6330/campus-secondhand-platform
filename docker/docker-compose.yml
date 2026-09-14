@@ -123,6 +123,13 @@ services:
       - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - REDIS_HOST=redis
       - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - OSS_ENDPOINT=${OSS_ENDPOINT}
+      - OSS_BUCKET=${OSS_BUCKET}
+      - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID}
+      - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET}
     depends_on:
       - mysql
       - redis
@@ -147,10 +154,18 @@ services:
       - DB_USERNAME=root
       - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - SEATA_ADDR=seata-server:8091
+      - OSS_ENDPOINT=${OSS_ENDPOINT}
+      - OSS_BUCKET=${OSS_BUCKET}
+      - OSS_ACCESS_KEY_ID=${OSS_ACCESS_KEY_ID}
+      - OSS_ACCESS_KEY_SECRET=${OSS_ACCESS_KEY_SECRET}
     depends_on:
       - mysql
       - redis
       - nacos
+      - seata-server
     networks:
       - campus-net
 
@@ -170,12 +185,19 @@ services:
       - DB_USERNAME=root
       - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - SEATA_ADDR=seata-server:8091
     depends_on:
       - mysql
       - redis
       - rabbitmq
       - nacos
+      - seata-server
     networks:
       - campus-net
 
@@ -189,8 +211,17 @@ services:
       - "${MESSAGE_SERVICE_PORT}:9104"
     environment:
       - NACOS_ADDR=nacos:8848
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=trade_user_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
     depends_on:
+      - mysql
       - rabbitmq
       - nacos
     networks:
@@ -206,7 +237,13 @@ services:
       - "${ADMIN_SERVICE_PORT}:9105"
     environment:
       - NACOS_ADDR=nacos:8848
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=trade_product_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
     depends_on:
+      - mysql
       - nacos
     networks:
       - campus-net

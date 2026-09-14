@@ -2,6 +2,10 @@ server:
   port: 9101
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -12,16 +16,16 @@ spring:
           enabled: false
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.209.128:3306/trade_user_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
+    url: jdbc:mysql://${DB_HOST:192.168.209.128}:${DB_PORT:3306}/${DB_NAME:trade_user_db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
 
 oss:
-  endpoint: oss-cn-beijing.aliyuncs.com
-  bucket: aaaa-campus-trade-images
-  access-key-id: YOUR_OSS_ACCESS_KEY_ID
-  access-key-secret: YOUR_OSS_ACCESS_KEY_SECRET
-  dir: user/
+  endpoint: ${OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+  bucket: ${OSS_BUCKET:aaaa-campus-trade-images}
+  access-key-id: ${OSS_ACCESS_KEY_ID:}
+  access-key-secret: ${OSS_ACCESS_KEY_SECRET:}
+  dir: ${OSS_DIR:user/}
 
 mybatis-plus:
   configuration:

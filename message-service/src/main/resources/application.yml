@@ -2,6 +2,10 @@ server:
   port: 9104
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
   application:
     name: campus-message-service
   mvc:
@@ -14,14 +18,14 @@ spring:
           enabled: false
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.209.128:3306/trade_user_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
+    url: jdbc:mysql://${DB_HOST:192.168.209.128}:${DB_PORT:3306}/${DB_NAME:trade_user_db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
   rabbitmq:
-    host: 192.168.209.128
-    port: 5672
-    username: root
-    password: 123456
+    host: ${RABBITMQ_HOST:192.168.209.128}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:root}
+    password: ${RABBITMQ_PASS:123456}
 
 mybatis-plus:
   configuration:

@@ -2,6 +2,10 @@ server:
   port: 9102
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -16,17 +20,17 @@ spring:
           enabled: false
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.209.128:3306/trade_product_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
+    url: jdbc:mysql://${DB_HOST:192.168.209.128}:${DB_PORT:3306}/${DB_NAME:trade_product_db}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
   redis:
-    host: 192.168.209.128
-    port: 6379
-    password: 123456
+    host: ${REDIS_HOST:192.168.209.128}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:123456}
   cache:
     type: redis
   elasticsearch:
-    uris: http://192.168.209.128:9200
+    uris: http://${ES_HOST:192.168.209.128}:${ES_PORT:9200}
 
 seata:
   application-id: campus-product-service
@@ -35,24 +39,24 @@ seata:
     type: nacos
     nacos:
       application: seata-server
-      server-addr: 192.168.209.128:8848
+      server-addr: ${NACOS_ADDR:192.168.209.128:8848}
       namespace: ""
       group: SEATA_GROUP
       cluster: default
-      username: nacos
-      password: nacos
+      username: ${SEATA_NACOS_USERNAME:nacos}
+      password: ${SEATA_NACOS_PASSWORD:nacos}
   service:
     vgroup-mapping:
       campus_tx_group: default
     grouplist:
-      default: 192.168.209.128:8091
+      default: ${SEATA_ADDR:192.168.209.128:8091}
 
 oss:
-  endpoint: oss-cn-beijing.aliyuncs.com
-  bucket: aaaa-campus-trade-images
-  access-key-id: YOUR_OSS_ACCESS_KEY_ID
-  access-key-secret: YOUR_OSS_ACCESS_KEY_SECRET
-  dir: products/
+  endpoint: ${OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+  bucket: ${OSS_BUCKET:aaaa-campus-trade-images}
+  access-key-id: ${OSS_ACCESS_KEY_ID:}
+  access-key-secret: ${OSS_ACCESS_KEY_SECRET:}
+  dir: ${OSS_DIR:products/}
 
 logging:
   level:
