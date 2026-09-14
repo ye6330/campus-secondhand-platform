@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="420" viewBox="0 0 560 420" fill="none">
+  <defs>
+    <linearGradient id="boxTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7a86b"/>
+      <stop offset="1" stop-color="#e8590c"/>
+    </linearGradient>
+    <linearGradient id="boxSide" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d04909"/>
+      <stop offset="1" stop-color="#a83a08"/>
+    </linearGradient>
+  </defs>
+
+  <!-- backdrop -->
+  <circle cx="300" cy="205" r="180" fill="#fbe1d2"/>
+  <circle cx="120" cy="90" r="16" fill="#f5c1a4"/>
+  <circle cx="470" cy="330" r="10" fill="#ef9c6f"/>
+
+  <!-- floating card: phone -->
+  <g transform="rotate(-8 150 250)">
+    <rect x="96" y="196" width="104" height="150" rx="14" fill="#ffffff" stroke="#e6e0d8" stroke-width="2"/>
+    <rect x="110" y="212" width="76" height="52" rx="8" fill="#f6f2ec"/>
+    <rect x="110" y="276" width="76" height="9" rx="4.5" fill="#e6e0d8"/>
+    <rect x="110" y="293" width="52" height="9" rx="4.5" fill="#e6e0d8"/>
+    <circle cx="148" cy="322" r="9" fill="#e8590c"/>
+  </g>
+
+  <!-- main box (isometric) -->
+  <g>
+    <path d="M280 130 L400 168 L400 268 L280 306 Z" fill="url(#boxSide)"/>
+    <path d="M160 168 L280 130 L280 306 L160 268 Z" fill="url(#boxTop)"/>
+    <path d="M160 168 L280 130 L400 168 L280 206 Z" fill="#f7a86b"/>
+    <path d="M256 143 L280 136 L280 206 L256 213 Z" fill="#ffffff" opacity="0.85"/>
+    <path d="M280 136 L304 143 L304 213 L280 206 Z" fill="#ffffff" opacity="0.6"/>
+  </g>
+
+  <!-- plant -->
+  <g transform="translate(392 120)">
+    <path d="M40 96 L40 44" stroke="#3f3a34" stroke-width="5" stroke-linecap="round"/>
+    <path d="M40 62 C20 56 10 40 14 22 C34 24 46 40 40 62 Z" fill="#1f9d74"/>
+    <path d="M40 76 C60 70 70 54 66 36 C46 38 34 54 40 76 Z" fill="#2fbf8f"/>
+    <path d="M20 96 L60 96 L54 132 L26 132 Z" fill="#d04909"/>
+  </g>
+
+  <!-- price tag -->
+  <g transform="rotate(14 452 200)">
+    <path d="M430 168 L486 168 L508 196 L486 224 L430 224 Z" fill="#ffffff" stroke="#e6e0d8" stroke-width="2"/>
+    <circle cx="450" cy="196" r="7" fill="#e8590c"/>
+    <rect x="462" y="188" width="30" height="6" rx="3" fill="#e6e0d8"/>
+    <rect x="462" y="200" width="20" height="6" rx="3" fill="#e6e0d8"/>
+  </g>
+
+  <!-- sparkles -->
+  <path d="M196 96 L204 112 L220 120 L204 128 L196 144 L188 128 L172 120 L188 112 Z" fill="#e8590c" opacity="0.9"/>
+  <path d="M462 84 L466 94 L476 98 L466 102 L462 112 L458 102 L448 98 L458 94 Z" fill="#ef9c6f"/>
+
+  <!-- ground shadow -->
+  <ellipse cx="286" cy="330" rx="150" ry="18" fill="#1f1d1a" opacity="0.06"/>
+</svg>

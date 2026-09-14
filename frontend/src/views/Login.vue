@@ -63,6 +63,7 @@ const handleLogin = async () => {
 
     <main class="auth-main">
       <div class="auth-form-wrap">
+        <img class="auth-art" src="/login-illustration.svg" alt="校园二手交易插画" />
         <header class="auth-head">
           <span class="form-brand">校</span>
           <h2>登录账号</h2>
@@ -162,10 +163,17 @@ const handleLogin = async () => {
 
 .aside-body p {
   max-width: 420px;
-  margin: 0 0 34px;
+  margin: 0 0 22px;
   color: #b8b1a6;
   font-size: 15px;
   line-height: 1.9;
+}
+
+.auth-art {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 18px;
 }
 
 .aside-points {

@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.UUID;
-import javax.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,19 +18,9 @@ public class OssFileServiceImpl implements FileService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     private final OssProperties ossProperties;
-    private OSS ossClient;
 
     public OssFileServiceImpl(OssProperties ossProperties) {
         this.ossProperties = ossProperties;
-    }
-
-    @PostConstruct
-    public void init() {
-        this.ossClient = new OSSClientBuilder().build(
-            ossProperties.getEndpoint(),
-            ossProperties.getAccessKeyId(),
-            ossProperties.getAccessKeySecret()
-        );
     }
 
     @Override
@@ -40,18 +29,40 @@ public class OssFileServiceImpl implements FileService {
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new RuntimeException("仅支持 jpg、png、webp 格式的图片");
         }
+        validateOssConfig();
 
         String extension = getExtension(contentType);
-        String objectName = ossProperties.getDir() + "avatars/"
+        String dir = ossProperties.getDir() == null ? "user/" : ossProperties.getDir();
+        if (!dir.endsWith("/")) {
+            dir = dir + "/";
+        }
+        String objectName = dir + "avatars/"
             + LocalDate.now().format(DATE_FORMATTER) + "/"
             + UUID.randomUUID().toString().replace("-", "") + extension;
 
+        OSS ossClient = new OSSClientBuilder().build(
+            ossProperties.getEndpoint(),
+            ossProperties.getAccessKeyId(),
+            ossProperties.getAccessKeySecret()
+        );
         try {
             ossClient.putObject(ossProperties.getBucket(), objectName, file.getInputStream());
             return "https://" + ossProperties.getBucket() + "." + ossProperties.getEndpoint() + "/" + objectName;
         } catch (Exception e) {
             throw new RuntimeException("头像上传失败", e);
+        } finally {
+            ossClient.shutdown();
         }
+    }
+
+    private void validateOssConfig() {
+        if (isBlank(ossProperties.getAccessKeyId()) || isBlank(ossProperties.getAccessKeySecret())) {
+            throw new IllegalStateException("请先配置 OSS 的 AccessKeyId 和 AccessKeySecret");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty() || value.startsWith("YOUR_");
     }
 
     private String getExtension(String contentType) {
